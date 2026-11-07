@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dictatordebby.com/games</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .games-hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+        .big-game-card {
+            background: var(--plum-bg);
+            border: 1px solid var(--pastel-pink);
+            padding: 20px;
+            border-radius: 6px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .big-game-card h3 { font-size: 14px; color: var(--pastel-pink); }
+        .big-game-card p { font-size: 11px; color: #d8a0c2; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+    <div class="browser-bar">
+        <div class="window-dots">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+        </div>
+        <div class="url-box">https://dictatordebby.com/games</div>
+        <div class="theme-switch">pastel star 🌸</div>
+    </div>
+
+    <div class="os-container">
+        <header class="main-banner">
+            <div class="banner-decor left">🪐</div>
+            <div class="banner-center">
+                <div class="star-logo">⭐️</div>
+                <h1>dictator debby</h1>
+                <p class="banner-sub">arcade & puzzle lobby</p>
+            </div>
+            <div class="banner-decor right">🎀</div>
+        </header>
+
+        <div class="workspace">
+            <nav class="sidebar">
+                <a href="index.html" class="nav-item">🏠 home</a>
+                <a href="games.html" class="nav-item active">🎮 games</a>
+                <a href="https://www.youtube.com/@dictatordebby" target="_blank" class="nav-item">🎬 videos</a>
+                <a href="about.html" class="nav-item">⭐ about me</a>
+                <a href="favourites.html" class="nav-item">💖 favourites</a>
+                <a href="guestbook.html" class="nav-item">💌 guestbook</a>
+                <a href="settings.html" class="nav-item">⚙️ settings</a>
+            </nav>
+
+            <main class="window-grid">
+                <section class="retro-window" style="grid-column: 1 / -1;">
+                    <div class="window-titlebar">
+                        <span class="win-title">★ select a game</span>
+                        <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                    </div>
+                    <div class="window-body">
+                        <div class="games-hub-grid">
+                            <div class="big-game-card">
+                                <span style="font-size: 32px;">🧩</span>
+                                <h3>connections</h3>
+                                <p>find groups of four items that share something in common before you run out of lives.</p>
+                                <a href="connections.html" class="win-btn" style="padding: 8px 18px;">play now →</a>
+                            </div>
+
+                            <div class="big-game-card">
+                                <span style="font-size: 32px;">🕵️‍♀️</span>
+                                <h3>eight at l'ombre (mystery)</h3>
+                                <p>interrogate seven mayfair suspects, log physical clues in your dossier, and solve lord harrington's murder.</p>
+                                <a href="mystery.html" class="win-btn" style="padding: 8px 18px;">play now →</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <footer class="taskbar">
+            <button class="start-btn" onclick="window.location.href='index.html'">⭐ start</button>
+            <div class="task-pill">dictatordebby / games</div>
+            <div class="taskbar-right">
+                <span class="audio-icon" title="sound">🔊</span>
+                <span class="wifi-icon">📶</span>
+                <span class="clock" id="live-clock">00:00</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

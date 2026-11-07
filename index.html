@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dictatordebby.com</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .video-thumbnail-card {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            background-color: #11050c;
+            background-size: cover;
+            background-position: center;
+            border: 1px solid var(--pastel-pink);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-decoration: none;
+            color: white;
+            overflow: hidden;
+        }
+        .video-thumbnail-card::before {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 75%;
+            background: linear-gradient(to top, rgba(30, 12, 21, 0.9), transparent);
+            z-index: 1;
+        }
+        .play-overlay-btn {
+            position: relative;
+            background: var(--pastel-pink);
+            color: var(--dark-plum);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+            z-index: 2;
+        }
+        .video-title-overlay {
+            position: relative;
+            font-size: 11px;
+            color: var(--text-pink);
+            font-weight: bold;
+            text-align: center;
+            padding: 0 10px 6px 10px;
+            z-index: 2;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="browser-bar">
+        <div class="window-dots">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+        </div>
+        <div class="url-box">https://dictatordebby.com</div>
+        <div class="theme-switch">pastel star 🌸</div>
+    </div>
+
+    <div class="os-container">
+        <header class="main-banner">
+            <div class="banner-decor left">🪐</div>
+            <div class="banner-center">
+                <div class="star-logo">⭐️</div>
+                <h1>dictator debby</h1>
+                <p class="banner-sub">games ☆ videos ☆ more</p>
+            </div>
+            <div class="banner-decor right">🎀</div>
+        </header>
+
+        <div class="workspace">
+            <nav class="sidebar">
+                <a href="index.html" class="nav-item active">🏠 home</a>
+                <a href="games.html" class="nav-item">🎮 games</a>
+                <a href="https://www.youtube.com/@dictatordebby" target="_blank" class="nav-item">🎬 videos</a>
+                <a href="about.html" class="nav-item">⭐ about me</a>
+                <a href="favourites.html" class="nav-item">💖 favourites</a>
+                <a href="guestbook.html" class="nav-item">💌 guestbook</a>
+                <a href="settings.html" class="nav-item">⚙️ settings</a>
+            </nav>
+
+            <main class="window-grid">
+                <section class="retro-window">
+                    <div class="window-titlebar">
+                        <span class="win-title">★ latest broadcast</span>
+                        <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                    </div>
+                    <div class="window-body">
+                        <div id="latest-video-container">
+                            <a href="https://www.youtube.com/@dictatordebby" target="_blank" class="video-thumbnail-card">
+                                <span class="video-title-overlay">loading latest video...</span>
+                                <div class="play-overlay-btn">▶ watch video</div>
+                            </a>
+                        </div>
+                        <div class="video-caption">
+                            visit channel <a href="https://www.youtube.com/@dictatordebby" target="_blank" style="color: var(--pastel-pink);">@dictatordebby →</a>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="retro-window">
+                    <div class="window-titlebar">
+                        <span class="win-title">★ play now</span>
+                        <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                    </div>
+                    <div class="window-body game-select-body">
+                        <div class="game-card">
+                            <span class="game-icon">🧩</span>
+                            <h3>connections</h3>
+                            <a href="connections.html" class="win-btn">play →</a>
+                        </div>
+                        <div class="game-card">
+                            <span class="game-icon">🕵️‍♀️</span>
+                            <h3>murder mystery</h3>
+                            <a href="mystery.html" class="win-btn">play →</a>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Retro Visitor Counter Window -->
+                <section class="retro-window" style="grid-column: 1 / -1;">
+                    <div class="window-titlebar">
+                        <span class="win-title">★ visitor log & system status</span>
+                        <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                    </div>
+                    <div class="window-body">
+                        <div class="counter-widget">
+                            <div class="counter-info">
+                                <h3>👁️ total debbyos visitors</h3>
+                                <p id="visitor-status-text">connecting to counter...</p>
+                            </div>
+                            <div class="odometer-box" id="visitor-odometer" aria-label="visitor counter">
+                                <span class="odometer-digit">0</span>
+                                <span class="odometer-digit">0</span>
+                                <span class="odometer-digit">0</span>
+                                <span class="odometer-digit">0</span>
+                                <span class="odometer-digit">0</span>
+                                <span class="odometer-digit">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <footer class="taskbar">
+            <button class="start-btn" onclick="window.location.href='index.html'">⭐ start</button>
+            <div class="task-pill">dictatordebby</div>
+            <div class="taskbar-right">
+                <span class="audio-icon" title="sound">🔊</span>
+                <span class="wifi-icon">📶</span>
+                <span class="clock" id="live-clock">00:00</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        async function fetchLatestYouTubeVideo() {
+            const channelId = 'UCqRH0ufVji0lsCMgqsoNb1w';
+            const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
+            const apiEndpoint = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+
+            try {
+                const response = await fetch(apiEndpoint);
+                const data = await response.json();
+
+                if (data.status === 'ok' && data.items.length > 0) {
+                    let longFormVideo = null;
+                    for (let item of data.items) {
+                        const link = item.link || "";
+                        const titleLower = (item.title || "").toLowerCase();
+                        if (!link.includes('/shorts/') && !titleLower.includes('#shorts') && !titleLower.includes('#short')) {
+                            longFormVideo = item;
+                            break;
+                        }
+                    }
+
+                    const latestVideo = longFormVideo || data.items[0];
+
+                    let videoId = "";
+                    if (latestVideo.guid) {
+                        videoId = latestVideo.guid.split(':').pop();
+                    } else if (latestVideo.link.includes('/shorts/')) {
+                        videoId = latestVideo.link.split('/shorts/')[1]?.split('?')[0];
+                    } else {
+                        videoId = latestVideo.link.split('v=')[1]?.substring(0, 11);
+                    }
+
+                    const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                    const container = document.getElementById('latest-video-container');
+
+                    container.innerHTML = `
+                        <a href="${latestVideo.link}" target="_blank" class="video-thumbnail-card" style="background-image: url('${thumbnailUrl}');">
+                            <span class="video-title-overlay">${latestVideo.title}</span>
+                            <div class="play-overlay-btn">▶ watch latest upload</div>
+                        </a>
+                    `;
+                }
+            } catch (error) {
+                console.error('could not fetch rss feed:', error);
+            }
+        }
+
+        fetchLatestYouTubeVideo();
+    </script>
+</body>
+</html>

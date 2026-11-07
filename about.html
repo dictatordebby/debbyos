@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dictatordebby.com/about</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .profile-card {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }
+        .profile-avatar {
+            width: 76px;
+            height: 76px;
+            border-radius: 8px;
+            background: var(--dark-plum);
+            border: 2px solid var(--pastel-pink);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 38px;
+            flex-shrink: 0;
+        }
+        .profile-info { flex: 1; min-width: 0; }
+        .profile-info h3 { font-size: 14px; color: var(--pastel-pink); margin-bottom: 2px; }
+        .profile-info .handle { font-size: 11px; color: #d8a0c2; margin-bottom: 10px; }
+        .profile-info p { font-size: 12px; line-height: 1.6; color: var(--text-pink); margin-bottom: 8px; }
+        .tagline {
+            margin-top: 10px;
+            padding: 10px 12px;
+            background: #180912;
+            border-left: 3px solid var(--pastel-pink);
+            border-radius: 4px;
+            font-size: 11px;
+            line-height: 1.5;
+            color: var(--pastel-pink);
+            font-style: italic;
+        }
+
+        .currently-list { display: flex; flex-direction: column; gap: 8px; }
+        .currently-item {
+            padding: 8px 10px;
+            background: #180912;
+            border: 1px solid #5a2033;
+            border-left: 3px solid var(--pastel-pink);
+            border-radius: 4px;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+        .currently-item strong {
+            color: var(--pastel-pink);
+            font-size: 10px;
+            display: block;
+            margin-bottom: 3px;
+            letter-spacing: 0.5px;
+        }
+
+        .site-note { font-size: 12px; line-height: 1.65; color: var(--text-pink); }
+        .site-note p { margin-bottom: 10px; }
+        .site-note code {
+            background: #12060d;
+            color: var(--pastel-pink);
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 11px;
+            border: 1px solid #5a2033;
+        }
+
+        .link-list { display: flex; flex-direction: column; gap: 8px; }
+        .link-pill {
+            background: var(--plum-bg);
+            border: 1px solid var(--pastel-pink);
+            color: var(--text-pink);
+            padding: 10px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            text-decoration: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            transition: 0.15s;
+        }
+        .link-pill:hover { background: var(--pastel-pink); color: var(--dark-plum); }
+        .link-pill .arrow { opacity: 0.6; font-weight: normal; }
+        .link-pill:hover .arrow { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div class="browser-bar">
+        <div class="window-dots">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+        </div>
+        <div class="url-box">https://dictatordebby.com/about</div>
+        <div class="theme-switch">pastel star 🌸</div>
+    </div>
+
+    <div class="os-container">
+        <header class="main-banner">
+            <div class="banner-decor left">🪐</div>
+            <div class="banner-center">
+                <div class="star-logo">⭐️</div>
+                <h1>dictator debby</h1>
+                <p class="banner-sub">games ☆ videos ☆ more</p>
+            </div>
+            <div class="banner-decor right">🎀</div>
+        </header>
+
+        <div class="workspace">
+            <nav class="sidebar">
+                <a href="index.html" class="nav-item">🏠 home</a>
+                <a href="games.html" class="nav-item">🎮 games</a>
+                <a href="https://www.youtube.com/@dictatordebby" target="_blank" class="nav-item">🎬 videos</a>
+                <a href="about.html" class="nav-item active">⭐ about me</a>
+                <a href="favourites.html" class="nav-item">💖 favourites</a>
+                <a href="guestbook.html" class="nav-item">💌 guestbook</a>
+                <a href="settings.html" class="nav-item">⚙️ settings</a>
+            </nav>
+
+            <main class="window-grid">
+                <section class="retro-window">
+                    <div class="window-titlebar">
+                        <span class="win-title">★ the human behind the screen</span>
+                        <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                    </div>
+                    <div class="window-body">
+                        <div class="profile-card">
+                            <div class="profile-avatar">🌸</div>
+                            <div class="profile-info">
+                                <h3>debby</h3>
+                                <div class="handle">@dictatordebby · somewhere on the internet</div>
+                                <p>hi, i'm debby. i make things on the internet: games, videos and little web corners like this one. i like pink, late-night coding and stories where you have to pay attention.</p>
+                                <p>debbyOS is my digital home on the web. please don't mind the mess. i'm always tinkering with something.</p>
+                            </div>
+                        </div>
+                        <div class="tagline">meeeeeeeeeeee</div>
+                    </div>
+                </section>
+
+                <section class="retro-window">
+                    <div class="window-titlebar">
+                        <span class="win-title">★ currently...</span>
+                        <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                    </div>
+                    <div class="window-body">
+                        <div class="currently-list">
+                            <div class="currently-item">
+                                <strong>📺 watching</strong>
+                                rewatching 'the sarah jane adventures', 'smallville' and watching star wars for the first time
+                            </div>
+                            <div class="currently-item">
+                                <strong>🎮 playing</strong>
+                                replaying spiderman and the last of us... i really need a ps5
+                            </div>
+                            <div class="currently-item">
+                                <strong>📚 reading</strong>
+                                getting back into dc, the actual comics after being fixtated on the dcuoam
+                            </div>
+                            <div class="currently-item">
+                                <strong>✨ making</strong>
+                                websites
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="retro-window">
+                    <div class="window-titlebar">
+                        <span class="win-title">★ about this site</span>
+                        <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                    </div>
+                    <div class="window-body">
+                        <div class="site-note">
+                            <p>debbyOS is a personal corner of the internet built with plain <code>html</code>, <code>css</code> and <code>javascript</code>. no frameworks, no build step, no tracking scripts. just windows, pastel colors and a few games.</p>
+                            <p>the retro desktop look is a love letter to early-2000s personal sites and my endless need to organize things into little windows.</p>
+                            <p>everything here is hand-made and constantly under construction. if something looks broken, it probably is. sorry!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="retro-window">
+                    <div class="window-titlebar">
+                        <span class="win-title">★ elsewhere on the web</span>
+                        <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                    </div>
+                    <div class="window-body">
+                        <div class="link-list">
+                            <a href="https://www.youtube.com/@dictatordebby" target="_blank" class="link-pill">
+                                <span>🎬 youtube · @dictatordebby</span>
+                                <span class="arrow">↗</span>
+                            </a>
+                            <a href="https://www.tiktok.com/@dictatordebby" target="_blank" class="link-pill">
+                                <span>🎵 tiktok · @dictatordebby</span>
+                                <span class="arrow">↗</span>
+                            </a>
+                            <a href="https://www.instagram.com/dictatordebby" target="_blank" class="link-pill">
+                                <span>📸 instagram · @dictatordebby</span>
+                                <span class="arrow">↗</span>
+                            </a>
+                            <a href="https://linktr.ee/dictatordebby" target="_blank" class="link-pill">
+                                <span>🌳 linktree · @dictatordebby</span>
+                                <span class="arrow">↗</span>
+                            </a>
+                            <a href="guestbook.html" class="link-pill">
+                                <span>💌 say hi in the guestbook</span>
+                                <span class="arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <footer class="taskbar">
+            <button class="start-btn" onclick="window.location.href='index.html'">⭐ start</button>
+            <div class="task-pill">dictatordebby / about</div>
+            <div class="taskbar-right">
+                <span class="audio-icon" title="sound">🔊</span>
+                <span class="wifi-icon">📶</span>
+                <span class="clock" id="live-clock">00:00</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

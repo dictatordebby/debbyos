@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dictatordebby.com/settings</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .settings-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .setting-card {
+            background: var(--plum-bg);
+            border: 1px solid var(--pastel-pink);
+            padding: 14px 16px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+        .setting-info h3 { font-size: 12px; color: var(--pastel-pink); margin-bottom: 3px; }
+        .setting-info p { font-size: 10px; color: #d8a0c2; line-height: 1.4; }
+
+        .setting-action {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .setting-btn {
+            background: var(--plum-window);
+            color: var(--pastel-pink);
+            border: 1px solid var(--pastel-pink);
+            padding: 6px 12px;
+            font-size: 11px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .setting-btn:hover { background: var(--pastel-pink); color: var(--dark-plum); }
+    </style>
+</head>
+<body>
+
+    <div class="browser-bar">
+        <div class="window-dots">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+        </div>
+        <div class="url-box">https://dictatordebby.com/settings</div>
+        <div class="theme-switch">pastel star 🌸</div>
+    </div>
+
+    <div class="os-container">
+        <header class="main-banner">
+            <div class="banner-decor left">🪐</div>
+            <div class="banner-center">
+                <div class="star-logo">⭐️</div>
+                <h1>dictator debby</h1>
+                <p class="banner-sub">debbyOS system preferences</p>
+            </div>
+            <div class="banner-decor right">🎀</div>
+        </header>
+
+        <div class="workspace">
+            <nav class="sidebar">
+                <a href="index.html" class="nav-item">🏠 home</a>
+                <a href="games.html" class="nav-item">🎮 games</a>
+                <a href="https://www.youtube.com/@dictatordebby" target="_blank" class="nav-item">🎬 videos</a>
+                <a href="about.html" class="nav-item">⭐ about me</a>
+                <a href="favourites.html" class="nav-item">💖 favourites</a>
+                <a href="guestbook.html" class="nav-item">💌 guestbook</a>
+                <a href="settings.html" class="nav-item active">⚙️ settings</a>
+            </nav>
+
+            <main class="window-grid" style="grid-template-columns: 1fr;">
+                <section class="retro-window">
+                    <div class="window-titlebar">
+                        <span class="win-title">★ system preferences & controls</span>
+                        <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                    </div>
+                    <div class="window-body">
+                        <div class="settings-grid">
+
+                            <!-- Setting 1: Theme Accent -->
+                            <div class="setting-card">
+                                <div class="setting-info">
+                                    <h3>system theme accent</h3>
+                                    <p>switch between signature dark plum, soft matcha, and midnight blue highlights across debbyOS windows.</p>
+                                </div>
+                                <div class="setting-action">
+                                    <button class="setting-btn" onclick="debbyOS_setTheme('plum')">plum</button>
+                                    <button class="setting-btn" onclick="debbyOS_setTheme('matcha')">matcha</button>
+                                    <button class="setting-btn" onclick="debbyOS_setTheme('midnight')">midnight</button>
+                                </div>
+                            </div>
+
+                            <!-- Setting 2: Audio Toggles -->
+                            <div class="setting-card">
+                                <div class="setting-info">
+                                    <h3>terminal sound effects</h3>
+                                    <p>enable retro mechanical keystrokes and click audio for menu navigation and puzzle tiles.</p>
+                                </div>
+                                <div class="setting-action">
+                                    <button class="setting-btn" id="audio-toggle-btn">enabled 🔊</button>
+                                </div>
+                            </div>
+
+                            <!-- Setting 3: Mystery Game Data Reset -->
+                            <div class="setting-card">
+                                <div class="setting-info">
+                                    <h3>murder mystery save data</h3>
+                                    <p>clear local browser storage for 'eight at l'ombre' to wipe current case progress and start fresh.</p>
+                                </div>
+                                <div class="setting-action">
+                                    <button class="setting-btn" style="border-color: #ff5f56; color: #ffbd2e;" onclick="clearMysterySaves()">clear save data</button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <footer class="taskbar">
+            <button class="start-btn" onclick="window.location.href='index.html'">⭐ start</button>
+            <div class="task-pill">dictatordebby / settings</div>
+            <div class="taskbar-right">
+                <span class="audio-icon" title="sound">🔊</span>
+                <span class="wifi-icon">📶</span>
+                <span class="clock" id="live-clock">00:00</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        function clearMysterySaves() {
+            if (confirm('are you sure you want to delete all murder mystery save data from local storage?')) {
+                localStorage.removeItem('debbyOS_mysterySave_v2');
+                localStorage.removeItem('debbyOS_mysterySave_v3');
+                alert('all mystery save data cleared successfully! 🧹');
+            }
+        }
+    </script>
+</body>
+</html>

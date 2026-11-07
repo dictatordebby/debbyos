@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dictatordebby.com/guestbook</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .guestbook-layout {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            align-items: start;
+            min-width: 0;
+        }
+        @media(min-width: 820px) {
+            .guestbook-layout { grid-template-columns: 1fr 1.4fr; }
+        }
+
+        .toast-banner {
+            background: #5a2033;
+            color: #fff;
+            border: 1px solid var(--pastel-pink);
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            font-size: 11px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            animation: fadeIn 0.2s ease-in;
+        }
+        .toast-banner.show { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+        .mini-btn {
+            background: var(--plum-bg);
+            color: var(--pastel-pink);
+            border: 1px solid var(--pastel-pink);
+            padding: 4px 10px;
+            font-size: 11px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .mini-btn:hover { background: var(--pastel-pink); color: var(--dark-plum); }
+
+        .guestbook-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .form-intro {
+            font-size: 11px;
+            line-height: 1.55;
+            color: #d8a0c2;
+            margin-bottom: 4px;
+        }
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .form-row label {
+            font-size: 10px;
+            color: var(--pastel-pink);
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+        .form-row input,
+        .form-row textarea {
+            background: #12060d;
+            color: var(--text-pink);
+            border: 1px solid #5a2033;
+            border-radius: 3px;
+            padding: 9px 11px;
+            font-size: 12px;
+            font-family: inherit;
+            resize: vertical;
+            width: 100%;
+        }
+        .form-row input:focus,
+        .form-row textarea:focus {
+            outline: 2px solid var(--pastel-pink);
+            border-color: var(--pastel-pink);
+        }
+        .form-row textarea {
+            min-height: 90px;
+            max-height: 220px;
+            line-height: 1.5;
+        }
+        .char-count {
+            font-size: 10px;
+            color: #8c5a75;
+            text-align: right;
+        }
+        .char-count.warn { color: #ff7b72; }
+        .submit-btn {
+            background: var(--pastel-pink);
+            color: var(--dark-plum);
+            border: none;
+            padding: 10px 18px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            align-self: flex-start;
+            margin-top: 4px;
+        }
+        .submit-btn:hover { background: #fff; }
+        .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .entries-count {
+            font-size: 10px;
+            color: #8c5a75;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        .guestbook-entries {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 560px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .guestbook-entry {
+            background: #180912;
+            border: 1px solid #5a2033;
+            border-left: 3px solid var(--pastel-pink);
+            border-radius: 4px;
+            padding: 10px 12px;
+            flex-shrink: 0;
+        }
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 6px;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .entry-name {
+            font-size: 11px;
+            color: var(--pastel-pink);
+            font-weight: bold;
+        }
+        .entry-time {
+            font-size: 9px;
+            color: #8c5a75;
+        }
+        .entry-message {
+            font-size: 12px;
+            line-height: 1.55;
+            color: var(--text-pink);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .empty-state {
+            font-size: 11px;
+            color: #8c5a75;
+            text-align: center;
+            padding: 30px 10px;
+            line-height: 1.6;
+        }
+        .clear-link {
+            background: none;
+            border: none;
+            color: #8c5a75;
+            font-size: 10px;
+            cursor: pointer;
+            text-decoration: underline;
+            margin-top: 10px;
+            padding: 4px 0;
+            font-family: inherit;
+        }
+        .clear-link:hover { color: #ff7b72; }
+        .mode-note {
+            font-size: 10px;
+            line-height: 1.5;
+            margin-top: 10px;
+            padding: 8px 10px;
+            border-radius: 4px;
+            border: 1px dashed #5a2033;
+            color: #8c5a75;
+        }
+        .mode-note.live {
+            color: #7ee787;
+            border-color: #2a5a35;
+            background: #0f1e14;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="browser-bar">
+        <div class="window-dots">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+        </div>
+        <div class="url-box">https://dictatordebby.com/guestbook</div>
+        <div class="theme-switch">pastel star 🌸</div>
+    </div>
+
+    <div class="os-container">
+        <header class="main-banner">
+            <div class="banner-decor left">🪐</div>
+            <div class="banner-center">
+                <div class="star-logo">⭐️</div>
+                <h1>dictator debby</h1>
+                <p class="banner-sub">games ☆ videos ☆ more</p>
+            </div>
+            <div class="banner-decor right">🎀</div>
+        </header>
+
+        <div class="workspace">
+            <nav class="sidebar">
+                <a href="index.html" class="nav-item">🏠 home</a>
+                <a href="games.html" class="nav-item">🎮 games</a>
+                <a href="https://www.youtube.com/@dictatordebby" target="_blank" class="nav-item">🎬 videos</a>
+                <a href="about.html" class="nav-item">⭐ about me</a>
+                <a href="favourites.html" class="nav-item">💖 favourites</a>
+                <a href="guestbook.html" class="nav-item active">💌 guestbook</a>
+                <a href="settings.html" class="nav-item">⚙️ settings</a>
+            </nav>
+
+            <div class="guestbook-layout">
+                <section class="retro-window">
+                    <div class="window-titlebar">
+                        <span class="win-title">★ sign the guestbook</span>
+                        <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                    </div>
+                    <div class="window-body">
+                        <div id="toast-banner" class="toast-banner" role="status" aria-live="polite">
+                            <span id="toast-text">💌</span>
+                            <button class="mini-btn" onclick="hideToast()">ok</button>
+                        </div>
+
+                        <p class="form-intro">leave a little note for the site: a hello, a game thought or a favourite song. keep it kind. ✨</p>
+
+                        <div class="guestbook-form">
+                            <div class="form-row">
+                                <label for="gb-name">your name</label>
+                                <input id="gb-name" type="text" maxlength="30" placeholder="name or handle">
+                            </div>
+                            <div class="form-row">
+                                <label for="gb-message">your message</label>
+                                <textarea id="gb-message" maxlength="280" placeholder="say hi..."></textarea>
+                                <div class="char-count" id="char-count">0 / 280</div>
+                            </div>
+                            <button class="submit-btn" id="submit-btn" onclick="submitEntry()">sign guestbook →</button>
+                        </div>
+
+                        <div class="mode-note" id="mode-note">
+                            checking guestbook connection...
+                        </div>
+                    </div>
+                </section>
+
+                <section class="retro-window">
+                    <div class="window-titlebar">
+                        <span class="win-title" id="entries-title">★ messages from the void</span>
+                        <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                    </div>
+                    <div class="window-body">
+                        <div class="entries-count" id="entries-count">loading...</div>
+                        <div class="guestbook-entries" id="entries-list"></div>
+                        <button class="clear-link" id="clear-btn" onclick="clearAll()" style="display:none;">clear all entries</button>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <footer class="taskbar">
+            <button class="start-btn" onclick="window.location.href='index.html'">⭐ start</button>
+            <div class="task-pill">dictatordebby / guestbook</div>
+            <div class="taskbar-right">
+                <span class="audio-icon" title="sound">🔊</span>
+                <span class="wifi-icon">📶</span>
+                <span class="clock" id="live-clock">00:00</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+
+    <script>
+        /* =====================================================================
+           STEP 1: paste your supabase credentials here to use a real database
+           =====================================================================
+           get these from: supabase dashboard → settings → api
+           leave them empty to fall back to localStorage (browser-only storage)
+           ===================================================================== */
+        const SUPABASE_URL = 'https://bjnjdnggpryurvnhjckb.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_GrUnMeA9ANc18PXoV5jTWA_ASvhbwOC';
+
+        /* ===== nothing below needs editing ===== */
+
+        const USE_DATABASE = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+        const supabaseClient = USE_DATABASE
+            ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+            : null;
+
+        const GB_KEY = 'debbyOS_guestbook_v1';
+        const MAX_MESSAGE_LEN = 280;
+        const MAX_NAME_LEN = 30;
+        const MAX_ENTRIES = 200;
+
+        function loadLocalEntries() {
+            try {
+                const raw = localStorage.getItem(GB_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        async function loadEntries() {
+            if (USE_DATABASE) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('guestbook_entries')
+                        .select('name, message, created_at')
+                        .order('created_at', { ascending: false })
+                        .limit(MAX_ENTRIES);
+                    if (error) throw error;
+                    return (data || []).map(e => ({
+                        name: e.name,
+                        message: e.message,
+                        timestamp: new Date(e.created_at).getTime()
+                    }));
+                } catch (err) {
+                    console.error('guestbook load failed:', err);
+                    showToast('could not load messages from the server.');
+                    return [];
+                }
+            }
+            return loadLocalEntries();
+        }
+
+        async function saveEntry(entry) {
+            if (USE_DATABASE) {
+                const { error } = await supabaseClient
+                    .from('guestbook_entries')
+                    .insert({ name: entry.name, message: entry.message });
+                if (error) throw error;
+                return;
+            }
+            const entries = loadLocalEntries();
+            entries.unshift(entry);
+            if (entries.length > MAX_ENTRIES) entries.length = MAX_ENTRIES;
+            localStorage.setItem(GB_KEY, JSON.stringify(entries));
+        }
+
+        async function clearAllEntries() {
+            if (USE_DATABASE) return false;
+            localStorage.removeItem(GB_KEY);
+            return true;
+        }
+
+        function formatTime(ts) {
+            const d = new Date(ts);
+            const now = new Date();
+            const diffMs = now - d;
+            const diffMin = Math.floor(diffMs / 60000);
+            const diffHr = Math.floor(diffMs / 3600000);
+            const diffDay = Math.floor(diffMs / 86400000);
+
+            if (diffMin < 1) return 'just now';
+            if (diffMin < 60) return `${diffMin} min ago`;
+            if (diffHr < 24) return `${diffHr}h ago`;
+            if (diffDay < 7) return `${diffDay}d ago`;
+
+            const months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+            return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+        }
+
+        async function renderEntries() {
+            const list = document.getElementById('entries-list');
+            const count = document.getElementById('entries-count');
+
+            list.innerHTML = '<div class="empty-state">loading...</div>';
+            const entries = await loadEntries();
+
+            count.textContent = `${entries.length} ${entries.length === 1 ? 'message' : 'messages'}`;
+
+            if (entries.length === 0) {
+                list.innerHTML = '<div class="empty-state">no messages yet.<br>be the first to sign ✨</div>';
+                return;
+            }
+
+            list.innerHTML = '';
+            entries.forEach(entry => {
+                const card = document.createElement('div');
+                card.className = 'guestbook-entry';
+
+                const header = document.createElement('div');
+                header.className = 'entry-header';
+
+                const name = document.createElement('span');
+                name.className = 'entry-name';
+                name.textContent = entry.name || 'anonymous';
+
+                const time = document.createElement('span');
+                time.className = 'entry-time';
+                time.textContent = formatTime(entry.timestamp);
+
+                header.appendChild(name);
+                header.appendChild(time);
+
+                const msg = document.createElement('div');
+                msg.className = 'entry-message';
+                msg.textContent = entry.message;
+
+                card.appendChild(header);
+                card.appendChild(msg);
+                list.appendChild(card);
+            });
+        }
+
+        function updateModeNote() {
+            const note = document.getElementById('mode-note');
+            const clearBtn = document.getElementById('clear-btn');
+
+            if (USE_DATABASE) {
+                note.classList.add('live');
+                note.textContent = '✓ connected to the site database. messages here are public and saved for all visitors.';
+                clearBtn.style.display = 'none';
+            } else {
+                note.classList.remove('live');
+                note.textContent = 'note: this guestbook isn\u2019t connected to a database yet, so entries are saved to your browser only and stay private to this device. the owner can connect a database in guestbook.html.';
+                clearBtn.style.display = 'inline-block';
+            }
+        }
+
+        function updateCharCount() {
+            const msg = document.getElementById('gb-message').value;
+            const counter = document.getElementById('char-count');
+            counter.textContent = `${msg.length} / ${MAX_MESSAGE_LEN}`;
+            counter.classList.toggle('warn', msg.length > MAX_MESSAGE_LEN * 0.9);
+        }
+
+        async function submitEntry() {
+            const nameInput = document.getElementById('gb-name');
+            const msgInput = document.getElementById('gb-message');
+            const btn = document.getElementById('submit-btn');
+
+            const name = nameInput.value.trim();
+            const message = msgInput.value.trim();
+
+            if (!name) {
+                showToast('please enter a name! ✍️');
+                nameInput.focus();
+                return;
+            }
+            if (!message) {
+                showToast('please write a message! 💬');
+                msgInput.focus();
+                return;
+            }
+            if (message.length > MAX_MESSAGE_LEN) {
+                showToast(`message is too long (max ${MAX_MESSAGE_LEN} chars).`);
+                return;
+            }
+
+            btn.disabled = true;
+            try {
+                await saveEntry({
+                    name: name.slice(0, MAX_NAME_LEN),
+                    message: message,
+                    timestamp: Date.now()
+                });
+
+                nameInput.value = '';
+                msgInput.value = '';
+                updateCharCount();
+                await renderEntries();
+                showToast('thanks for signing! 💌');
+            } catch (err) {
+                console.error(err);
+                showToast('could not save your entry. try again?');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function clearAll() {
+            if (USE_DATABASE) {
+                showToast('entries live in the site database. use the supabase dashboard to moderate them.');
+                return;
+            }
+            const entries = loadLocalEntries();
+            if (entries.length === 0) {
+                showToast('the guestbook is already empty!');
+                return;
+            }
+            if (!confirm(`this will delete all ${entries.length} guestbook entries from this browser. are you sure?`)) return;
+            const ok = await clearAllEntries();
+            if (ok) {
+                await renderEntries();
+                showToast('guestbook cleared. 🧹');
+            }
+        }
+
+        let toastTimeout = null;
+        function showToast(msg) {
+            const banner = document.getElementById('toast-banner');
+            document.getElementById('toast-text').textContent = msg;
+            banner.classList.add('show');
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(hideToast, 3500);
+        }
+        function hideToast() {
+            document.getElementById('toast-banner').classList.remove('show');
+        }
+
+        document.getElementById('gb-message').addEventListener('input', updateCharCount);
+        document.getElementById('gb-message').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                submitEntry();
+            }
+        });
+        updateCharCount();
+        updateModeNote();
+        renderEntries();
+    </script>
+</body>
+</html>

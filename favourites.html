@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dictatordebby.com/favourites</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .fav-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        @media(min-width: 900px) {
+            .fav-grid { grid-template-columns: 1fr 1fr; }
+        }
+        .fav-section {
+            background: #180912;
+            border: 1px solid #5a2033;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        .fav-section h4 {
+            color: var(--pastel-pink);
+            font-size: 12px;
+            margin-bottom: 10px;
+            border-bottom: 1px dashed rgba(242, 198, 222, 0.2);
+            padding-bottom: 5px;
+        }
+        /* Tag cloud style instead of long boring lists */
+        .tag-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .media-tag {
+            background: var(--plum-bg);
+            color: var(--text-pink);
+            border: 1px solid #5a2033;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            transition: 0.15s;
+        }
+        .media-tag:hover {
+            background: var(--pastel-pink);
+            color: var(--dark-plum);
+            border-color: var(--pastel-pink);
+        }
+        /* Custom scrollbar matching debbyOS plum theme */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--plum-bg);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #5a2033;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--pastel-pink);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="browser-bar">
+        <div class="window-dots">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+        </div>
+        <div class="url-box">https://dictatordebby.com/favourites</div>
+        <div class="theme-switch">pastel star 🌸</div>
+    </div>
+
+    <div class="os-container">
+        <header class="main-banner">
+            <div class="banner-decor left">🪐</div>
+            <div class="banner-center">
+                <div class="star-logo">⭐️</div>
+                <h1>dictator debby</h1>
+                <p class="banner-sub">media, games & rotations</p>
+            </div>
+            <div class="banner-decor right">🎀</div>
+        </header>
+
+        <div class="workspace">
+            <nav class="sidebar">
+                <a href="index.html" class="nav-item">🏠 home</a>
+                <a href="games.html" class="nav-item">🎮 games</a>
+                <a href="https://www.youtube.com/@dictatordebby" target="_blank" class="nav-item">🎬 videos</a>
+                <a href="about.html" class="nav-item">⭐ about me</a>
+                <a href="favourites.html" class="nav-item active">💖 favourites</a>
+                <a href="guestbook.html" class="nav-item">💌 guestbook</a>
+                <a href="settings.html" class="nav-item">⚙️ settings</a>
+            </nav>
+
+            <main class="fav-grid">
+                <!-- Window 1: Screen & Stage -->
+                <section class="retro-window">
+                    <div class="window-titlebar">
+                        <span class="win-title">★ screen & stage</span>
+                        <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                    </div>
+                    <div class="window-body">
+                        
+                        <div class="fav-section">
+                            <h4>📺 television (live-action)</h4>
+                            <div class="tag-cloud">
+                                <span class="media-tag">4 o'clock club</span>
+                                <span class="media-tag">a different world</span>
+                                <span class="media-tag">abbott elementary</span>
+                                <span class="media-tag">ackley bridge</span>
+                                <span class="media-tag">all of us are dead</span>
+                                <span class="media-tag">any disney channel/xd pre-2015</span>
+                                <span class="media-tag">benidorm</span>
+                                <span class="media-tag">black lightning</span>
+                                <span class="media-tag">boy meets world</span>
+                                <span class="media-tag">brooklyn nine-nine</span>
+                                <span class="media-tag">buffy the vampire slayer</span>
+                                <span class="media-tag">chilling adventures of sabrina</span>
+                                <span class="media-tag">degrassi: the next generation</span>
+                                <span class="media-tag">desperate housewives</span>
+                                <span class="media-tag">downton abbey</span>
+                                <span class="media-tag">dynasty</span>
+                                <span class="media-tag">empire</span>
+                                <span class="media-tag">euphoria</span>
+                                <span class="media-tag">family matters</span>
+                                <span class="media-tag">footballers wives</span>
+                                <span class="media-tag">glee</span>
+                                <span class="media-tag">gossip girl</span>
+                                <span class="media-tag">grimm</span>
+                                <span class="media-tag">h2o: just add water</span>
+                                <span class="media-tag">henry danger</span>
+                                <span class="media-tag">house of anubis</span>
+                                <span class="media-tag">icarly</span>
+                                <span class="media-tag">in living color</span>
+                                <span class="media-tag">kenan & kel</span>
+                                <span class="media-tag">lab rats</span>
+                                <span class="media-tag">lie to me</span>
+                                <span class="media-tag">light as a feather</span>
+                                <span class="media-tag">living single</span>
+                                <span class="media-tag">lost</span>
+                                <span class="media-tag">m.i. high</span>
+                                <span class="media-tag">malcolm in the middle</span>
+                                <span class="media-tag">merlin</span>
+                                <span class="media-tag">misfits</span>
+                                <span class="media-tag">modern family</span>
+                                <span class="media-tag">moesha</span>
+                                <span class="media-tag">monk</span>
+                                <span class="media-tag">my babysitter's a vampire</span>
+                                <span class="media-tag">on my block</span>
+                                <span class="media-tag">once upon a time</span>
+                                <span class="media-tag">pretty little liars</span>
+                                <span class="media-tag">riverdale (i love to laugh at it)</span>
+                                <span class="media-tag">sabrina the teenage witch</span>
+                                <span class="media-tag">scandal</span>
+                                <span class="media-tag">scream queens</span>
+                                <span class="media-tag">shake it up</span>
+                                <span class="media-tag">sister, sister</span>
+                                <span class="media-tag">smallville</span>
+                                <span class="media-tag">star</span>
+                                <span class="media-tag">stranger things</span>
+                                <span class="media-tag">supergirl</span>
+                                <span class="media-tag">teen wolf</span>
+                                <span class="media-tag">the flash</span>
+                                <span class="media-tag">the fresh prince of bel-air</span>
+                                <span class="media-tag">the office</span>
+                                <span class="media-tag">the sarah jane adventures</span>
+                                <span class="media-tag">the umbrella academy</span>
+                                <span class="media-tag">ugly betty</span>
+                                <span class="media-tag">victorious</span>
+                                <span class="media-tag">violetta</span>
+                                <span class="media-tag">waterloo road</span>
+                            </div>
+                        </div>
+
+                        <div class="fav-section">
+                            <h4>🍿 movies (live-action)</h4>
+                            <div class="tag-cloud">
+                                <span class="media-tag">10 things i hate about you</span>
+                                <span class="media-tag">28 days later</span>
+                                <span class="media-tag">armageddon</span>
+                                <span class="media-tag">attack the block</span>
+                                <span class="media-tag">bend it like beckham</span>
+                                <span class="media-tag">boyz n the hood</span>
+                                <span class="media-tag">breakfast at tiffany's</span>
+                                <span class="media-tag">but i'm a cheerleader</span>
+                                <span class="media-tag">casper</span>
+                                <span class="media-tag">clueless</span>
+                                <span class="media-tag">crazy rich asians</span>
+                                <span class="media-tag">cruel intentions</span>
+                                <span class="media-tag">d.e.b.s.</span>
+                                <span class="media-tag">deliver us from eva</span>
+                                <span class="media-tag">descendants</span>
+                                <span class="media-tag">dreamgirls</span>
+                                <span class="media-tag">every disney channel movie pre-2017</span>
+                                <span class="media-tag">funny face</span>
+                                <span class="media-tag">gentlemen prefer blondes</span>
+                                <span class="media-tag">godzilla</span>
+                                <span class="media-tag">grease</span>
+                                <span class="media-tag">hairspray</span>
+                                <span class="media-tag">harry potter & the sorcerer's stone</span>
+                                <span class="media-tag">heathers</span>
+                                <span class="media-tag">holes</span>
+                                <span class="media-tag">how to marry a millionaire</span>
+                                <span class="media-tag">it's a wonderful afterlife</span>
+                                <span class="media-tag">it's a wonderful life</span>
+                                <span class="media-tag">jinxed</span>
+                                <span class="media-tag">juice</span>
+                                <span class="media-tag">legally blonde</span>
+                                <span class="media-tag">life-size</span>
+                                <span class="media-tag">mamma mia</span>
+                                <span class="media-tag">mcu</span>
+                                <span class="media-tag">mean girls</span>
+                                <span class="media-tag">miss congeniality</span>
+                                <span class="media-tag">my babysitter's a vampire</span>
+                                <span class="media-tag">nancy drew</span>
+                                <span class="media-tag">new york minute</span>
+                                <span class="media-tag">ocean's 8</span>
+                                <span class="media-tag">ocean's eleven</span>
+                                <span class="media-tag">passport to paris</span>
+                                <span class="media-tag">percy jackson & the lightning thief</span>
+                                <span class="media-tag">rags</span>
+                                <span class="media-tag">romeo + juliet</span>
+                                <span class="media-tag">romy and michele's reunion</span>
+                                <span class="media-tag">shaun of the dead</span>
+                                <span class="media-tag">she's all that</span>
+                                <span class="media-tag">singin' in the rain</span>
+                                <span class="media-tag">spy kids</span>
+                                <span class="media-tag">st trinian's</span>
+                                <span class="media-tag">superman returns</span>
+                                <span class="media-tag">teen beach movie</span>
+                                <span class="media-tag">narnia: lion, witch & wardrobe</span>
+                                <span class="media-tag">the golden compass</span>
+                                <span class="media-tag">the greatest showman</span>
+                                <span class="media-tag">the hunger games / catching fire</span>
+                                <span class="media-tag">the maze runner</span>
+                                <span class="media-tag">the spiderwick chronicles</span>
+                                <span class="media-tag">west side story</span>
+                                <span class="media-tag">working girl</span>
+                                <span class="media-tag">zombies (eh)</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- Window 2: Animation, Anime & Reads -->
+                <section class="retro-window">
+                    <div class="window-titlebar">
+                        <span class="win-title">★ animation, anime & reads</span>
+                        <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                    </div>
+                    <div class="window-body">
+                        
+                        <div class="fav-section">
+                            <h4>🖍️ television (animated)</h4>
+                            <div class="tag-cloud">
+                                <span class="media-tag">6teen</span>
+                                <span class="media-tag">adventure time</span>
+                                <span class="media-tag">as told by ginger</span>
+                                <span class="media-tag">avatar: the last airbender</span>
+                                <span class="media-tag">big hero 6: the series</span>
+                                <span class="media-tag">bratz</span>
+                                <span class="media-tag">care bears</span>
+                                <span class="media-tag">daria</span>
+                                <span class="media-tag">dc superhero girls (old)</span>
+                                <span class="media-tag">ducktales (2017)</span>
+                                <span class="media-tag">ever after high</span>
+                                <span class="media-tag">f is for family</span>
+                                <span class="media-tag">gravity falls</span>
+                                <span class="media-tag">justice league unlimited</span>
+                                <span class="media-tag">legend of korra</span>
+                                <span class="media-tag">miraculous: ladybug & cat noir</span>
+                                <span class="media-tag">over the garden wall</span>
+                                <span class="media-tag">phineas and ferb</span>
+                                <span class="media-tag">powerpuff girls</span>
+                                <span class="media-tag">samurai jack</span>
+                                <span class="media-tag">scooby-doo! mystery incorporated</span>
+                                <span class="media-tag">she-ra and the princesses</span>
+                                <span class="media-tag">sofia the first</span>
+                                <span class="media-tag">sonic underground</span>
+                                <span class="media-tag">south park</span>
+                                <span class="media-tag">star vs the forces of evil</span>
+                                <span class="media-tag">steven universe</span>
+                                <span class="media-tag">stoked</span>
+                                <span class="media-tag">strawberry shortcake (pre-2007)</span>
+                                <span class="media-tag">teen titans</span>
+                                <span class="media-tag">the amazing world of gumball</span>
+                                <span class="media-tag">the boondocks</span>
+                                <span class="media-tag">total drama island</span>
+                                <span class="media-tag">totally spies</span>
+                                <span class="media-tag">winx club</span>
+                                <span class="media-tag">x-men: evolution</span>
+                                <span class="media-tag">young justice</span>
+                            </div>
+                        </div>
+
+                        <div class="fav-section">
+                            <h4>🌸 anime</h4>
+                            <div class="tag-cloud">
+                                <span class="media-tag">a silent voice</span>
+                                <span class="media-tag">assassination classroom</span>
+                                <span class="media-tag">blend s</span>
+                                <span class="media-tag">bokurano</span>
+                                <span class="media-tag">fruits basket</span>
+                                <span class="media-tag">hyouka</span>
+                                <span class="media-tag">jujutsu kaisen</span>
+                                <span class="media-tag">kaguya-sama: love is war</span>
+                                <span class="media-tag">komi can’t communicate</span>
+                                <span class="media-tag">lucky star</span>
+                                <span class="media-tag">michiko & hatchin</span>
+                                <span class="media-tag">my hero academia</span>
+                                <span class="media-tag">nana</span>
+                                <span class="media-tag">naruto</span>
+                                <span class="media-tag">sailor moon</span>
+                                <span class="media-tag">spy x family</span>
+                                <span class="media-tag">your lie in april</span>
+                            </div>
+                        </div>
+
+                        <div class="fav-section">
+                            <h4>🍿 movies (animated)</h4>
+                            <div class="tag-cloud">
+                                <span class="media-tag">a monster in paris</span>
+                                <span class="media-tag">anastasia</span>
+                                <span class="media-tag">annie</span>
+                                <span class="media-tag">barbie as rapunzel</span>
+                                <span class="media-tag">barbie as the island princess</span>
+                                <span class="media-tag">batman vs. robin</span>
+                                <span class="media-tag">bratz: fashion pixiez</span>
+                                <span class="media-tag">cars 2</span>
+                                <span class="media-tag">coraline</span>
+                                <span class="media-tag">despicable me</span>
+                                <span class="media-tag">every barbie movie pre-2015</span>
+                                <span class="media-tag">every bratz movie</span>
+                                <span class="media-tag">every disney animated film</span>
+                                <span class="media-tag">every disney princess movie</span>
+                                <span class="media-tag">every pixar animated film</span>
+                                <span class="media-tag">justice league: crisis part one</span>
+                                <span class="media-tag">phineas and ferb the movie</span>
+                                <span class="media-tag">rainbow magic</span>
+                                <span class="media-tag">scooby-doo! & the goblin king</span>
+                                <span class="media-tag">shrek</span>
+                                <span class="media-tag">spider-man: into the spider-verse</span>
+                                <span class="media-tag">the corpse bride</span>
+                                <span class="media-tag">the prince of egypt</span>
+                                <span class="media-tag">wonder woman: bloodlines</span>
+                            </div>
+                        </div>
+
+                        <div class="fav-section">
+                            <h4>📚 books, comics & games</h4>
+                            <div class="tag-cloud">
+                                <span class="media-tag">13 treasures trilogy</span>
+                                <span class="media-tag">alex rider</span>
+                                <span class="media-tag">batman: court of owls</span>
+                                <span class="media-tag">chronicles of narnia</span>
+                                <span class="media-tag">crazy rich asians</span>
+                                <span class="media-tag">embassy row</span>
+                                <span class="media-tag">every roald dahl book</span>
+                                <span class="media-tag">gallagher girls</span>
+                                <span class="media-tag">harry potter</span>
+                                <span class="media-tag">heroes of olympus</span>
+                                <span class="media-tag">infinity ring</span>
+                                <span class="media-tag">kane chronicles</span>
+                                <span class="media-tag">magic ballerina</span>
+                                <span class="media-tag">magnus chase</span>
+                                <span class="media-tag">one of us is lying / next</span>
+                                <span class="media-tag">percy jackson & the olympians</span>
+                                <span class="media-tag">series of unfortunate events</span>
+                                <span class="media-tag">sonic the hedgehog comics</span>
+                                <span class="media-tag">supergirl: woman of tomorrow</span>
+                                <span class="media-tag">tmnt: the last ronin</span>
+                                <span class="media-tag">the 39 clues</span>
+                                <span class="media-tag">the hunger games</span>
+                                <span class="media-tag">the love hypothesis</span>
+                                <span class="media-tag">the sisters grimm</span>
+                                <span class="media-tag">trials of apollo</span>
+                                <span class="media-tag">two can keep a secret</span>
+                                <span class="media-tag">w.i.t.c.h.</span>
+                                <span class="media-tag">aciv: black flag</span>
+                                <span class="media-tag">bully</span>
+                                <span class="media-tag">clock tower</span>
+                                <span class="media-tag">epic mickey</span>
+                                <span class="media-tag">marvel's spider-man</span>
+                                <span class="media-tag">the quarry</span>
+                                <span class="media-tag">the sims 4</span>
+                                <span class="media-tag">until dawn</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- Window 3: Music & Musicals (Full Width bottom card) -->
+                <section class="retro-window" style="grid-column: 1 / -1;">
+                    <div class="window-titlebar">
+                        <span class="win-title">★ music & musicals</span>
+                        <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                    </div>
+                    <div class="window-body">
+                        <div class="fav-section">
+                            <h4>🎵 heavy rotation & musicals</h4>
+                            <div class="tag-cloud">
+                                <span class="media-tag">13: the musical</span>
+                                <span class="media-tag">a very potter musical / senior year</span>
+                                <span class="media-tag">ariana grande</span>
+                                <span class="media-tag">be more chill</span>
+                                <span class="media-tag">charlie and the chocolate factory</span>
+                                <span class="media-tag">crystal kay</span>
+                                <span class="media-tag">dear evan hansen</span>
+                                <span class="media-tag">destiny's child</span>
+                                <span class="media-tag">donna summer</span>
+                                <span class="media-tag">dreamgirls</span>
+                                <span class="media-tag">hamilton</span>
+                                <span class="media-tag">hairspray</span>
+                                <span class="media-tag">heathers</span>
+                                <span class="media-tag">kylie minogue</span>
+                                <span class="media-tag">mamma mia</span>
+                                <span class="media-tag">mariah carey</span>
+                                <span class="media-tag">matilda</span>
+                                <span class="media-tag">mean girls (musical)</span>
+                                <span class="media-tag">oliver!</span>
+                                <span class="media-tag">rent</span>
+                                <span class="media-tag">samantha mumba</span>
+                                <span class="media-tag">stevie wonder</span>
+                                <span class="media-tag">whitney houston</span>
+                                <span class="media-tag">wicked</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+
+        <footer class="taskbar">
+            <button class="start-btn" onclick="window.location.href='index.html'">⭐ start</button>
+            <div class="task-pill">dictatordebby / favourites</div>
+            <div class="taskbar-right">
+                <span class="audio-icon" title="sound">🔊</span>
+                <span class="wifi-icon">📶</span>
+                <span class="clock" id="live-clock">00:00</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

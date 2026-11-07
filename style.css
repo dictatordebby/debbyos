@@ -1,0 +1,445 @@
+/* all-lowercase styling rule across the board */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: monospace, monospace;
+    text-transform: lowercase;
+}
+
+:root {
+    --plum-bg: #1e0c15;
+    --plum-window: #2e1422;
+    --pastel-pink: #f2c6de;
+    --dark-plum: #4a1525;
+    --text-pink: #fce8f3;
+}
+
+body {
+    background-color: var(--plum-bg);
+    color: var(--text-pink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+/* fake browser top bar */
+.browser-bar {
+    background: var(--dark-plum);
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    border-radius: 8px 8px 0 0;
+    border: 1px solid var(--pastel-pink);
+    font-size: 12px;
+    transition: background-color 0.35s ease, border-color 0.35s ease;
+}
+
+.window-dots { display: flex; gap: 6px; flex-shrink: 0; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.dot.red { background: #ff5f56; }
+.dot.yellow { background: #ffbd2e; }
+.dot.green { background: #27c93f; }
+
+.url-box {
+    background: var(--plum-bg);
+    padding: 4px 12px;
+    border-radius: 4px;
+    color: var(--pastel-pink);
+    border: 1px solid #5a2033;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+.theme-switch { flex-shrink: 0; }
+
+/* main os wrapper */
+.os-container {
+    background: #26101c;
+    border: 2px solid var(--pastel-pink);
+    border-top: none;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+    transition: border-color 0.35s ease;
+}
+
+/* top site banner */
+.main-banner {
+    background: var(--pastel-pink);
+    color: var(--dark-plum);
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 3px solid var(--dark-plum);
+    transition: background-color 0.35s ease, border-color 0.35s ease;
+}
+
+.star-logo { font-size: 24px; text-align: center; }
+.banner-center h1 { font-size: 22px; font-weight: bold; letter-spacing: 1px; text-align: center; }
+.banner-sub { font-size: 11px; text-align: center; }
+.banner-decor { font-size: 24px; }
+
+/* workspace layout */
+.workspace {
+    display: flex;
+    flex: 1;
+    gap: 15px;
+    padding: 15px;
+}
+
+/* sidebar */
+.sidebar {
+    width: 140px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.nav-item {
+    background: var(--dark-plum);
+    color: var(--pastel-pink);
+    padding: 10px;
+    text-decoration: none;
+    border-radius: 4px;
+    border: 1px solid var(--pastel-pink);
+    font-size: 13px;
+    transition: 0.2s;
+    display: block;
+}
+
+.nav-item:hover, .nav-item.active {
+    background: var(--pastel-pink);
+    color: var(--dark-plum);
+    font-weight: bold;
+}
+
+/* window grid */
+.window-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    min-width: 0;
+}
+
+@media(min-width: 768px) {
+    .window-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* retro window styling */
+.retro-window {
+    background: var(--plum-window);
+    border: 2px solid var(--pastel-pink);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    transition: background-color 0.35s ease, border-color 0.35s ease;
+}
+
+.window-titlebar {
+    background: var(--pastel-pink);
+    color: var(--dark-plum);
+    padding: 6px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    font-size: 12px;
+    transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+.win-controls span { margin-left: 6px; cursor: pointer; }
+
+.window-body {
+    padding: 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.video-placeholder {
+    background: #11050c;
+    height: 140px;
+    border: 1px dashed var(--pastel-pink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8c5a75;
+    font-size: 12px;
+}
+
+.video-caption { font-size: 12px; color: var(--pastel-pink); }
+
+/* game selection window */
+.game-select-body {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.game-card {
+    background: var(--plum-bg);
+    border: 1px solid var(--pastel-pink);
+    padding: 12px 10px;
+    flex: 1;
+    text-align: center;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    transition: background-color 0.35s ease;
+}
+
+.game-icon { font-size: 22px; }
+.game-card h3 { font-size: 12px; margin: 4px 0; color: var(--pastel-pink); }
+
+.win-btn {
+    background: var(--pastel-pink);
+    color: var(--dark-plum);
+    border: none;
+    padding: 6px 12px;
+    font-size: 11px;
+    cursor: pointer;
+    border-radius: 3px;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.win-btn:hover { background: #fff; }
+
+/* retro visitor counter widget */
+.counter-widget {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    background: var(--plum-bg);
+    border: 1px solid var(--pastel-pink);
+    padding: 12px 16px;
+    border-radius: 4px;
+}
+
+.counter-info h3 {
+    font-size: 13px;
+    color: var(--pastel-pink);
+    margin-bottom: 4px;
+}
+
+.counter-info p {
+    font-size: 11px;
+    color: #d8a0c2;
+    line-height: 1.4;
+}
+
+.odometer-box {
+    display: flex;
+    gap: 4px;
+    background: #12060d;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid #5a2033;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.odometer-digit {
+    background: var(--dark-plum);
+    color: var(--pastel-pink);
+    border: 1px solid var(--pastel-pink);
+    border-radius: 3px;
+    width: 24px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+/* taskbar visitor counter badge */
+.visitor-pill {
+    background: var(--plum-bg);
+    color: var(--pastel-pink);
+    border: 1px solid var(--pastel-pink);
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+/* bottom taskbar */
+.taskbar {
+    background: var(--dark-plum);
+    border-top: 2px solid var(--pastel-pink);
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    transition: background-color 0.35s ease, border-color 0.35s ease;
+}
+
+.start-btn, .task-pill {
+    background: var(--pastel-pink);
+    color: var(--dark-plum);
+    border: none;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.taskbar-right {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--pastel-pink);
+    align-items: center;
+}
+
+.audio-icon { user-select: none; }
+.audio-icon:hover { filter: brightness(1.25); }
+
+/* global smoothness */
+a, button, .nav-item, .win-btn, .game-btn, .choice-btn, .setting-btn, .mini-btn, .tab-pill, .start-btn {
+    transition: background-color 0.18s ease, color 0.18s ease,
+                border-color 0.18s ease, transform 0.18s ease,
+                filter 0.18s ease;
+}
+
+:focus-visible {
+    outline: 2px solid var(--pastel-pink);
+    outline-offset: 2px;
+    border-radius: 3px;
+}
+
+/* =========================================
+   MOBILE & TABLET RESPONSIVENESS
+   ========================================= */
+@media (max-width: 768px) {
+    body {
+        padding: 4px;
+    }
+
+    .browser-bar {
+        padding: 6px 8px;
+        font-size: 10px;
+    }
+
+    .url-box {
+        padding: 3px 8px;
+        font-size: 10px;
+        flex: 1;
+        text-align: center;
+    }
+
+    .theme-switch {
+        display: none;
+    }
+
+    .main-banner {
+        padding: 10px;
+    }
+
+    .banner-center h1 {
+        font-size: 18px;
+    }
+
+    .banner-decor {
+        font-size: 18px;
+    }
+
+    /* Stack sidebar into a 3-column mobile nav bar at the top */
+    .workspace {
+        flex-direction: column;
+        padding: 10px;
+        gap: 12px;
+    }
+
+    .sidebar {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+
+    .nav-item {
+        padding: 8px 4px;
+        font-size: 11px;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .game-select-body {
+        flex-direction: column;
+    }
+
+    .counter-widget {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .taskbar {
+        padding: 6px 8px;
+    }
+
+    .task-pill {
+        font-size: 10px;
+        padding: 4px 8px;
+        max-width: 180px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+/* matcha / sage theme */
+body.matcha-sage {
+    --plum-bg: #0f1c14;
+    --plum-window: #192e21;
+    --pastel-pink: #c2f2d0;
+    --dark-plum: #1c4a2a;
+    --text-pink: #e8fceb;
+}
+
+/* midnight blue / silver theme */
+body.midnight-blue {
+    --plum-bg: #0a0f1d;
+    --plum-window: #131c33;
+    --pastel-pink: #c2dcf2;
+    --dark-plum: #1a3059;
+    --text-pink: #e8f4fc;
+}
+
+/* accessibility: respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

@@ -1,0 +1,1908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dictatordebby.com/games/mystery</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .mystery-layout {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        @media(min-width: 950px) {
+            .mystery-layout { flex-direction: row; align-items: flex-start; }
+        }
+        .story-window { flex: 1.7; display: flex; flex-direction: column; width: 100%; }
+        .dossier-window { flex: 1.3; display: flex; flex-direction: column; width: 100%; max-height: 700px; transition: max-height 0.3s ease; }
+        .dossier-window.collapsed { max-height: 32px; overflow: hidden; }
+
+        /* Prominent Status Bar */
+        .game-status-bar {
+            background: #160810;
+            border: 1px solid var(--pastel-pink);
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-bottom: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+        }
+        .status-Metrics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            font-weight: bold;
+        }
+        .status-pill {
+            background: var(--dark-plum);
+            padding: 4px 10px;
+            border-radius: 3px;
+            border: 1px solid #5a2033;
+            color: var(--pastel-pink);
+        }
+
+        .save-load-controls {
+            display: flex;
+            gap: 6px;
+        }
+        .mini-btn {
+            background: var(--plum-bg);
+            color: var(--pastel-pink);
+            border: 1px solid var(--pastel-pink);
+            padding: 4px 10px;
+            font-size: 11px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .mini-btn:hover, .mini-btn:focus-visible {
+            background: var(--pastel-pink);
+            color: var(--dark-plum);
+            outline: none;
+        }
+
+        /* Notification Banner */
+        .toast-banner {
+            background: #5a2033;
+            color: #fff;
+            border: 1px solid var(--pastel-pink);
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            font-size: 11px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            animation: fadeIn 0.2s ease-in;
+        }
+        .toast-banner.show { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (prefers-reduced-motion: reduce) {
+            .toast-banner { animation: none; }
+            .choice-btn { transition: none !important; }
+            .choice-btn:hover { transform: none !important; }
+        }
+
+        /* Scene Header & Text */
+        .scene-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(20, 6, 14, 0.6);
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 3px solid var(--pastel-pink);
+            margin-bottom: 12px;
+        }
+        .scene-avatar {
+            width: 46px;
+            height: 46px;
+            background: var(--dark-plum);
+            border: 1px solid var(--pastel-pink);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        .scene-meta h2 { font-size: 13px; color: var(--pastel-pink); margin-bottom: 2px; }
+        .scene-meta p { font-size: 11px; color: #d8a0c2; }
+
+        .story-text {
+            font-size: 13px;
+            line-height: 1.65;
+            color: var(--text-pink);
+            min-height: 135px;
+            margin-bottom: 18px;
+            white-space: pre-line;
+        }
+
+        .choices-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .choice-btn {
+            background: var(--plum-bg);
+            color: var(--text-pink);
+            border: 1px solid var(--pastel-pink);
+            border-left: 4px solid var(--pastel-pink);
+            padding: 12px 16px;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            text-align: left;
+            transition: 0.15s;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+        .choice-btn span:first-child {
+            flex: 1;
+            line-height: 1.4;
+        }
+        .choice-btn:hover, .choice-btn:focus-visible {
+            background: var(--pastel-pink);
+            color: var(--dark-plum);
+            transform: translateX(3px);
+            outline: none;
+        }
+        .choice-btn.type-evidence { border-left-color: #d2a8ff; background: #26122c; }
+        .choice-btn.type-evidence:hover { background: #d2a8ff; color: #1e0c15; }
+        .choice-btn.type-nav { border-left-color: #8c5a75; opacity: 0.9; }
+        .choice-tag {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: rgba(0,0,0,0.35);
+            color: var(--pastel-pink);
+            flex-shrink: 0;
+        }
+        .choice-btn:hover .choice-tag { background: var(--dark-plum); color: var(--pastel-pink); }
+
+        /* 3-Tab Detective Journal */
+        .journal-tabs {
+            display: flex;
+            gap: 6px;
+            padding: 10px 12px 8px 12px;
+            background: var(--plum-window);
+            border-bottom: 1px solid rgba(242, 198, 222, 0.2);
+            flex-shrink: 0;
+        }
+        .tab-pill {
+            background: #160810;
+            color: #d8a0c2;
+            border: 1px solid #5a2033;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .tab-pill.active {
+            background: #4a1525;
+            color: var(--pastel-pink);
+            border-color: var(--pastel-pink);
+        }
+
+        .journal-body {
+            padding: 12px;
+            overflow-y: auto;
+            max-height: 590px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .suspect-card {
+            background: #180912;
+            border: 1px solid #5a2033;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+        .suspect-card.hostile { border-color: #ff5f56; }
+        .suspect-card-header {
+            width: 100%;
+            background: none;
+            border: none;
+            color: var(--text-pink);
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            text-align: left;
+        }
+        .suspect-card-header:hover { background: rgba(242, 198, 222, 0.05); }
+        .portrait-box {
+            width: 42px;
+            height: 42px;
+            border-radius: 6px;
+            background: var(--dark-plum);
+            border: 1px solid var(--pastel-pink);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        .suspect-title-group { flex: 1; }
+        .suspect-title-group strong { display: block; font-size: 12px; color: var(--pastel-pink); }
+        .suspect-title-group small { font-size: 10px; color: #b982a1; }
+        
+        .trust-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #2e1422;
+            border: 1px solid #5a2033;
+            flex-shrink: 0;
+        }
+        .trust-badge.trusted { color: #7ee787; border-color: #7ee787; }
+        .trust-badge.hostile { color: #ff7b72; border-color: #ff7b72; }
+
+        .suspect-details {
+            display: none;
+            padding: 10px 12px 14px 12px;
+            font-size: 11px;
+            border-top: 1px dashed rgba(242, 198, 222, 0.15);
+            line-height: 1.5;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .suspect-card.expanded .suspect-details { display: block; }
+        .detail-section-title {
+            color: var(--pastel-pink);
+            font-weight: bold;
+            margin: 8px 0 4px 0;
+            font-size: 10px;
+            letter-spacing: 0.5px;
+        }
+        .info-list {
+            list-style: disc;
+            padding-left: 16px;
+            color: #fce8f3;
+            line-height: 1.5;
+        }
+        .info-list li { margin-bottom: 5px; }
+        
+        .status-tag {
+            display: inline-block;
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-weight: bold;
+        }
+        .status-unknown { background: #2a1823; color: #b982a1; }
+        .status-unverified { background: #3d2f1d; color: #ffbd2e; }
+        .status-verified { background: #163320; color: #7ee787; }
+        .status-contradicted { background: #44161d; color: #ff7b72; }
+
+        .evidence-card {
+            background: #180912;
+            border: 1px solid var(--pastel-pink);
+            border-radius: 5px;
+            padding: 12px;
+            font-size: 11px;
+            line-height: 1.5;
+            flex-shrink: 0;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .evidence-card strong { color: var(--pastel-pink); display: block; margin-bottom: 4px; font-size: 12px; }
+        .evidence-meta { color: #b982a1; font-size: 10px; margin-bottom: 6px; }
+        .evidence-implicates {
+            margin-top: 8px;
+            padding-top: 6px;
+            border-top: 1px dashed rgba(242, 198, 222, 0.2);
+            color: #d2a8ff;
+            font-size: 10px;
+            line-height: 1.45;
+        }
+
+        .notes-area {
+            width: 100%;
+            min-height: 240px;
+            background: #12060d;
+            color: var(--text-pink);
+            border: 1px solid var(--pastel-pink);
+            border-radius: 4px;
+            padding: 10px;
+            font-size: 11px;
+            line-height: 1.5;
+            resize: vertical;
+            flex-shrink: 0;
+        }
+        .notes-area:focus { outline: 2px solid var(--pastel-pink); }
+
+        .report-box {
+            background: #160810;
+            border: 1px solid var(--pastel-pink);
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+        .win-ctrl-btn {
+            background: none;
+            border: none;
+            color: var(--dark-plum);
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0 4px;
+            font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .game-status-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            .status-Metrics {
+                justify-content: space-between;
+                width: 100%;
+            }
+            .save-load-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .save-load-controls .mini-btn {
+                flex: 1;
+                padding: 6px;
+                text-align: center;
+            }
+            .choice-btn {
+                padding: 12px;
+                font-size: 11px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+            .choice-tag {
+                align-self: flex-start;
+            }
+            .journal-tabs {
+                flex-wrap: wrap;
+            }
+            .tab-pill {
+                flex: 1;
+                text-align: center;
+                padding: 6px 8px;
+            }
+            .dossier-window {
+                max-height: none;
+            }
+            .journal-body {
+                max-height: 420px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="browser-bar">
+        <div class="window-dots">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+        </div>
+        <div class="url-box">https://dictatordebby.com/games/mystery</div>
+        <div class="theme-switch">pastel star 🌸</div>
+    </div>
+
+    <div class="os-container">
+        <header class="main-banner">
+            <div class="banner-decor left">🪐</div>
+            <div class="banner-center">
+                <div class="star-logo">⭐️</div>
+                <h1>dictator debby</h1>
+                <p class="banner-sub">eight at l'ombre, corpse for one · case 001</p>
+            </div>
+            <div class="banner-decor right">🎀</div>
+        </header>
+
+        <div class="workspace">
+            <nav class="sidebar">
+                <a href="index.html" class="nav-item">🏠 home</a>
+                <a href="games.html" class="nav-item active">🎮 games</a>
+                <a href="https://www.youtube.com/@dictatordebby" target="_blank" class="nav-item">🎬 videos</a>
+                <a href="index.html" class="nav-item">⭐ about me</a>
+                <a href="favourites.html" class="nav-item">💖 favourites</a>
+                <a href="index.html" class="nav-item">💌 guestbook</a>
+                <a href="settings.html" class="nav-item">⚙️ settings</a>
+            </nav>
+
+            <div class="mystery-layout">
+                <!-- Main Story & Investigation Window -->
+                <section class="retro-window story-window">
+                    <div class="window-titlebar">
+                        <span class="win-title" id="node-title">★ case 001: l'ombre</span>
+                        <div class="win-controls">
+                            <button class="win-ctrl-btn" onclick="resetGamePrompt()" title="restart game">↻</button>
+                        </div>
+                    </div>
+                    <div class="window-body">
+                        <div class="game-status-bar">
+                            <div class="status-Metrics">
+                                <span class="status-pill" id="clues-display">🗝️ evidence: 0 / 5</span>
+                                <span class="status-pill" id="nerves-display">⭐️ nerves: ⭐️⭐️⭐️⭐️⭐️⭐️</span>
+                            </div>
+                            <div class="save-load-controls">
+                                <button class="mini-btn" onclick="saveGame()">💾 save</button>
+                                <button class="mini-btn" onclick="loadGame()">📂 load</button>
+                                <button class="mini-btn" onclick="resetGamePrompt()">🔄 reset</button>
+                            </div>
+                        </div>
+
+                        <div id="toast-banner" class="toast-banner" role="status" aria-live="polite">
+                            <span id="toast-text">🔍 new update logged in case files.</span>
+                            <button class="mini-btn" onclick="hideToast()">ok</button>
+                        </div>
+
+                        <div class="scene-header">
+                            <div class="scene-avatar" id="scene-icon">🕵️‍♀️</div>
+                            <div class="scene-meta">
+                                <h2 id="scene-location">subterranean lounge, mayfair</h2>
+                                <p id="scene-sub">status: pre-dinner reception</p>
+                            </div>
+                        </div>
+
+                        <div class="story-text" id="story-box" aria-live="polite"></div>
+                        <div id="report-container"></div>
+                        <div class="choices-container" id="choices-box"></div>
+                    </div>
+                </section>
+
+                <!-- 3-Tab Case Files & Detective Journal Window -->
+                <section class="retro-window dossier-window" id="dossier-section">
+                    <div class="window-titlebar">
+                        <span class="win-title">📂 case files</span>
+                        <div class="win-controls">
+                            <button class="win-ctrl-btn" onclick="toggleDossier()" title="minimize or expand dossier">_</button>
+                        </div>
+                    </div>
+                    <div class="journal-tabs">
+                        <button class="tab-pill active" id="tab-btn-suspects" onclick="switchJournalTab('suspects')">suspects (7)</button>
+                        <button class="tab-pill" id="tab-btn-evidence" onclick="switchJournalTab('evidence')">evidence (0/5)</button>
+                        <button class="tab-pill" id="tab-btn-notes" onclick="switchJournalTab('notes')">case notes</button>
+                    </div>
+                    <div class="journal-body" id="dossier-box"></div>
+                </section>
+            </div>
+        </div>
+
+        <footer class="taskbar">
+            <button class="start-btn" onclick="window.location.href='index.html'">⭐ start</button>
+            <div class="task-pill">dictatordebby / games / mystery</div>
+            <div class="taskbar-right">
+                <span class="audio-icon" title="retro terminal mode">🔊</span>
+                <span class="wifi-icon">📶</span>
+                <span class="clock" id="live-clock">00:00</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const SAVE_VERSION = "2.3";
+        const MAX_NERVES = 6;
+
+        // Core Suspect Profiles with Logical Deduction Attributes & Shared Red Herring Pairs
+        const SUSPECT_TEMPLATE = [
+            {
+                id: "genevieve",
+                num: "01",
+                name: "madame genevieve",
+                role: "fashion mogul",
+                avatar: "🕶️",
+                personality: "icy, defensive and intimidating.",
+                relationship: "despises trixie vane for wearing counterfeit couture to her paris show.",
+                grievance: "harrington bought her supplier debt to force a hostile takeover of her fashion house.",
+                alibiClaim: "claims she was retouching her lipstick in the powder room during the blackout.",
+                accessGroup: "cellar",
+                corridorGroup: "east",
+                itemTrait: "silk",
+                trust: 0,
+                unlocked: false,
+                hostile: false,
+                alibiKnown: false,
+                alibiStatus: "unknown",
+                confrontedAlibi: false
+            },
+            {
+                id: "julian",
+                num: "02",
+                name: "julian vance",
+                role: "art dealer",
+                avatar: "💎",
+                personality: "panicky, over-accessorised and heavily indebted.",
+                relationship: "estranged husband to trixie vane; owes money to vic moretti's backers.",
+                grievance: "harrington rigged a sotheby's bidding war that bankrupted his gallery.",
+                alibiClaim: "claims he was at the main bar ordering a double scotch when the lights died.",
+                accessGroup: "cellar",
+                corridorGroup: "west",
+                itemTrait: "cufflink",
+                trust: 0,
+                unlocked: false,
+                hostile: false,
+                alibiKnown: false,
+                alibiStatus: "unknown",
+                confrontedAlibi: false
+            },
+            {
+                id: "clara",
+                num: "03",
+                name: "clara montgomery",
+                role: "tech journalist",
+                avatar: "📓",
+                personality: "sharp-eyed, calculating and fiercely protective of her sources.",
+                relationship: "secretly investigating vic moretti's offshore restaurant investors.",
+                grievance: "harrington funded a bots-and-lawsuits smear campaign that got her blacklisted.",
+                alibiClaim: "claims she stayed seated in booth 4 recording audio notes on her tablet.",
+                accessGroup: "kitchen",
+                corridorGroup: "east",
+                itemTrait: "ink",
+                trust: 0,
+                unlocked: false,
+                hostile: false,
+                alibiKnown: false,
+                alibiStatus: "unknown",
+                confrontedAlibi: false
+            },
+            {
+                id: "vic",
+                num: "04",
+                name: "victor 'vic' moretti",
+                role: "restaurant owner",
+                avatar: "🥃",
+                personality: "sweating through his bespoke suit, territorial and volatile.",
+                relationship: "furious at clara for snooping; pressures elena over vintage margins.",
+                grievance: "harrington threatened to leak l'ombre's shadow accounting books to hmrc.",
+                alibiClaim: "claims he was checking the main circuit breaker in the kitchen prep area.",
+                accessGroup: "kitchen",
+                corridorGroup: "west",
+                itemTrait: "cufflink",
+                trust: 0,
+                unlocked: false,
+                hostile: false,
+                alibiKnown: false,
+                alibiStatus: "unknown",
+                confrontedAlibi: false
+            },
+            {
+                id: "aris",
+                num: "05",
+                name: "dr. aris sterling",
+                role: "plastic surgeon",
+                avatar: "🩺",
+                personality: "clinical, unnervingly calm and superiority-driven.",
+                relationship: "performed high-profile procedures for genevieve and trixie.",
+                grievance: "harrington obtained sealed harley street malpractice files to blackmail him.",
+                alibiClaim: "claims he was standing near the coat check taking an urgent hospital call.",
+                accessGroup: "medical",
+                corridorGroup: "east",
+                itemTrait: "cufflink",
+                trust: 0,
+                unlocked: false,
+                hostile: false,
+                alibiKnown: false,
+                alibiStatus: "unknown",
+                confrontedAlibi: false
+            },
+            {
+                id: "trixie",
+                num: "06",
+                name: "beatrice 'trixie' vane",
+                role: "socialite",
+                avatar: "🥂",
+                personality: "snarky, hyper-observant and ruthlessly self-preserving.",
+                relationship: "divorcing julian; locked in a bitter social feud with genevieve.",
+                grievance: "harrington threatened to expose her cayman islands trust during her divorce.",
+                alibiClaim: "claims she was admiring the paintings by the velvet foyer curtains.",
+                accessGroup: "medical",
+                corridorGroup: "west",
+                itemTrait: "silk",
+                trust: 0,
+                unlocked: false,
+                hostile: false,
+                alibiKnown: false,
+                alibiStatus: "unknown",
+                confrontedAlibi: false
+            },
+            {
+                id: "elena",
+                num: "07",
+                name: "elena rossi",
+                role: "head sommelier",
+                avatar: "🍷",
+                personality: "perfectionist, anxious and fiercely proud of her cellar.",
+                relationship: "intimidated by vic moretti; overheard julian and trixie arguing.",
+                grievance: "harrington published a fabricated accusation that she sold counterfeit bordeaux.",
+                alibiClaim: "claims she was decanting a 1982 vintage inside the temperature-controlled cellar.",
+                accessGroup: "cellar",
+                corridorGroup: "east",
+                itemTrait: "ink",
+                trust: 0,
+                unlocked: false,
+                hostile: false,
+                alibiKnown: false,
+                alibiStatus: "unknown",
+                confrontedAlibi: false
+            }
+        ];
+
+        let gameState = {
+            version: SAVE_VERSION,
+            currentNode: "intro_arrival",
+            nerves: MAX_NERVES,
+            trueKiller: "",
+            suspects: [],
+            evidenceList: [],
+            visitedNodes: [],
+            activeTab: "suspects",
+            expandedSuspectId: "genevieve",
+            playerNotes: "",
+            endingData: { title: "", narrative: "", reportHTML: "" }
+        };
+
+        function initNewCase(keepSameKiller = false) {
+            const previousKiller = gameState.trueKiller;
+            gameState.suspects = JSON.parse(JSON.stringify(SUSPECT_TEMPLATE));
+            gameState.evidenceList = [];
+            gameState.visitedNodes = [];
+            gameState.nerves = MAX_NERVES;
+            gameState.currentNode = keepSameKiller ? "murder_scene" : "intro_arrival";
+            gameState.playerNotes = ""; // Fixed: Scratchpad resets properly!
+            gameState.endingData = { title: "", narrative: "", reportHTML: "" };
+
+            if (!keepSameKiller || !previousKiller) {
+                const idx = Math.floor(Math.random() * gameState.suspects.length);
+                gameState.trueKiller = gameState.suspects[idx].id;
+            } else {
+                gameState.trueKiller = previousKiller;
+            }
+        }
+
+        function getKillerObj() {
+            return gameState.suspects.find(s => s.id === gameState.trueKiller) || gameState.suspects[0];
+        }
+
+        function getSuspect(id) {
+            return gameState.suspects.find(s => s.id === id);
+        }
+
+        function getCaseClueData(clueKey) {
+            const killer = getKillerObj();
+
+            if (clueKey === "clue_table") {
+                return {
+                    id: "clue_table",
+                    title: "poisoned 1982 bordeaux & bitter almond residue",
+                    location: "table 1 (lord harrington's booth)",
+                    status: "confirmed",
+                    description: "inspector dante confirms cyanide-laced bitter almond oil was swirled directly into harrington's vintage bordeaux glass, not his food.",
+                    implicates: "establishes mode of murder: the killer needed direct access to the wine service or table 1 during the pour."
+                };
+            }
+
+            if (clueKey === "clue_means") {
+                const groupMap = {
+                    cellar: {
+                        title: "tampered cellar keycard log",
+                        location: "temperature-controlled wine cellar",
+                        desc: "the digital lock on the private reserve rack shows a keycard swipe 4 minutes before the blackout. only vip keyholders and the sommelier have this clearance.",
+                        suspectIds: ["genevieve", "julian", "elena"]
+                    },
+                    kitchen: {
+                        title: "unlogged service pass & decanting funnel",
+                        location: "back-of-house kitchen prep",
+                        desc: "a rinsed glass funnel with traces of almond oil was hidden behind the espresso machine—accessible only to staff or someone slipping in via the press/kitchen door.",
+                        suspectIds: ["clara", "vic"]
+                    },
+                    medical: {
+                        title: "compounded cyanide ampoule",
+                        location: "kitchen sanitation bin",
+                        desc: "a snapped glass medical ampoule from a private harley street compounding pharmacy. only a clinician or a private clinic patient could source this.",
+                        suspectIds: ["aris", "trixie"]
+                    }
+                };
+                const data = groupMap[killer.accessGroup];
+                const names = data.suspectIds.map(id => getSuspect(id).name).join(", ");
+                return {
+                    id: "clue_means",
+                    title: data.title,
+                    location: data.location,
+                    status: "confirmed",
+                    description: data.desc,
+                    suspectIds: data.suspectIds,
+                    implicates: `proves means (access to poison/delivery): implicates ${names}.`
+                };
+            }
+
+            if (clueKey === "clue_opportunity") {
+                const corrMap = {
+                    east: {
+                        title: "shattered amber sconce & motion log",
+                        location: "east private corridor",
+                        desc: "someone manually tripped the auxiliary breaker in the east hallway right as the lights went out, contradicting anyone claiming to be quiet in the east wing or powder room.",
+                        suspectIds: ["genevieve", "clara", "aris", "elena"]
+                    },
+                    west: {
+                        title: "propped service door & muddy bootprint",
+                        location: "west service corridor",
+                        desc: "the west service door leading directly behind table 1 was wedged open with a silver stopper during the 90-second blackout.",
+                        suspectIds: ["julian", "vic", "trixie"]
+                    }
+                };
+                const data = corrMap[killer.corridorGroup];
+                const names = data.suspectIds.map(id => getSuspect(id).name).join(", ");
+                return {
+                    id: "clue_opportunity",
+                    title: data.title,
+                    location: data.location,
+                    status: "confirmed",
+                    description: data.desc,
+                    suspectIds: data.suspectIds,
+                    implicates: `proves opportunity (blackout movement): casts doubt on alibis of ${names}.`
+                };
+            }
+
+            if (clueKey === "clue_trace") {
+                const traitMap = {
+                    silk: {
+                        title: "snagged luxury silk fiber",
+                        location: "velvet curtain behind table 1",
+                        desc: "caught on the brass curtain hook right behind harrington's chair is a thread of rare, hand-dyed couture silk.",
+                        suspectIds: ["genevieve", "trixie"]
+                    },
+                    cufflink: {
+                        title: "scratched metallic cufflink backing",
+                        location: "floor beneath table 1",
+                        desc: "a heavy precious-metal cufflink clasp snapped off in the dark when the killer reached across harrington's booth.",
+                        suspectIds: ["julian", "vic", "aris"]
+                    },
+                    ink: {
+                        title: "iron-gall fountain ink smudge",
+                        location: "harrington's linen napkin",
+                        desc: "a fresh smudge of specialist archival ink transferred onto the corner of the victim's napkin during the blackout.",
+                        suspectIds: ["clara", "elena"]
+                    }
+                };
+                const data = traitMap[killer.itemTrait];
+                const names = data.suspectIds.map(id => getSuspect(id).name).join(", ");
+                return {
+                    id: "clue_trace",
+                    title: data.title,
+                    location: data.location,
+                    status: "confirmed",
+                    description: data.desc,
+                    suspectIds: data.suspectIds,
+                    implicates: `physical trace at crime scene: narrows suspects to ${names}.`
+                };
+            }
+
+            if (clueKey === "clue_belongings") {
+                return {
+                    id: "clue_belongings",
+                    title: "harrington's encrypted blackmail ledger",
+                    location: "harrington's leather briefcase (coat check)",
+                    status: "confirmed",
+                    description: "inside harrington's locked briefcase is a master dossier scheduled for release at midnight. the top red-flagged file confirms: 'one of tonight's seven guests faces total ruin at midnight — final ultimatum expires tonight.'",
+                    suspectIds: [],
+                    implicates: "corroborating motive: confirms someone in the lounge had an urgent, life-destroying motive to kill harrington tonight."
+                };
+            }
+        }
+
+        function addEvidence(clueKey) {
+            if (gameState.evidenceList.some(e => e.id === clueKey)) return;
+            const clueObj = getCaseClueData(clueKey);
+            if (clueObj) {
+                gameState.evidenceList.push(clueObj);
+                showToast(`🔍 new evidence logged: ${clueObj.title}`);
+            }
+        }
+
+        function hasEvidence(clueKey) {
+            return gameState.evidenceList.some(e => e.id === clueKey);
+        }
+
+        const storyNodes = {
+            intro_arrival: {
+                title: "★ prologue: arrival at l'ombre",
+                location: "foyer & velvet lounge, mayfair",
+                sub: "20:15 gmt · pre-dinner drinks",
+                icon: "🍸",
+                text: "you step past the heavy plum velvet curtains into l'ombre, mayfair's most secretive subterranean dining club. tonight, billionaire financier lord harrington has summoned seven high-society guests—and every single one of them looks on edge.\n\nretired scotland yard detective inspector dante tips his glass to you from table 4. 'evening, detective. mingle with the guests and get at least three of them to open up before harrington arrives. read their personalities carefully—if you rub someone the wrong way, they'll shut you out and rattle your nerves.'",
+                getChoices: () => [
+                    { text: "1. enter the lounge and mingle with the seven guests", next: "prologue_hub" }
+                ]
+            },
+
+            prologue_hub: {
+                title: "★ prologue: mingling in the lounge",
+                location: "main dining room, l'ombre",
+                sub: "20:30 gmt · pre-dinner reception",
+                icon: "🥂",
+                getText: () => {
+                    const trustedCount = gameState.suspects.filter(s => s.unlocked).length;
+                    return `crystal chandeliers cast low amber light over the booths. you need to figure out why lord harrington invited this specific group tonight—and pay attention to how each person carries themselves before choosing what to say.\n\nguests who have opened up to you: ${trustedCount} / 3 required. select a guest to approach:`;
+                },
+                getChoices: () => {
+                    const list = [];
+                    const trustedCount = gameState.suspects.filter(s => s.unlocked).length;
+                    if (trustedCount >= 3) {
+                        list.push({
+                            text: "🍽️ lord harrington arrives — take your seat for dinner",
+                            next: "murder_scene",
+                            tag: "begin chapter 1"
+                        });
+                    }
+                    gameState.suspects.forEach(s => {
+                        let statusTag = "guarded";
+                        if (s.unlocked) statusTag = "✓ opened up";
+                        if (s.hostile) statusTag = "✗ hostile";
+                        list.push({
+                            text: `${s.avatar} approach ${s.name} (${s.role})`,
+                            next: `talk_${s.id}`,
+                            tag: statusTag
+                        });
+                    });
+                    return list;
+                }
+            },
+
+            talk_genevieve: {
+                title: "★ madame genevieve",
+                location: "booth 2 · vip velvet corner",
+                sub: "suspect 01 · fashion mogul",
+                icon: "🕶️",
+                getText: () => {
+                    const s = getSuspect("genevieve");
+                    if (s.hostile) return "genevieve refuses to even lower her sunglasses. 'i told you we have nothing to discuss, darling. go pester trixie vane in her knock-off silk.'";
+                    if (s.unlocked) return "genevieve swirls her martini. 'remember what i told you: harrington bought up my textile debt to force me out of my own label. and keep an eye on trixie—she's been desperate for cash ever since her divorce started.'";
+                    return "genevieve adjusts her dark sunglasses indoors, smoothing the black mulberry silk of her custom couture gown. 'unless you're from vogue paris or carrying a court injunction against trixie vane for wearing counterfeit designs, state your business quickly.'";
+                },
+                getChoices: () => {
+                    const s = getSuspect("genevieve");
+                    if (s.unlocked || s.hostile) return [{ text: "← return to lounge", next: "prologue_hub", type: "nav" }];
+                    return [
+                        { text: "1. ask if the rumors about her fashion house facing bankruptcy are true", next: "gen_down" },
+                        { text: "2. remark on the rare hand-dyed mulberry silk of her couture gown", next: "gen_up" },
+                        { text: "← step back to the lounge", next: "prologue_hub", type: "nav" }
+                    ];
+                }
+            },
+            gen_up: {
+                title: "★ madame genevieve",
+                location: "booth 2",
+                sub: "motive & relationship uncovered",
+                icon: "🕶️",
+                action: () => unlockSuspect("genevieve"),
+                text: "a rare smirk crosses her lips. 'finally, someone in london with eyes. this mulberry silk is the last piece from my private atelier. lord harrington secretly bought my supplier debt last month—he's trying to stage a hostile takeover of my fashion house tonight.'",
+                getChoices: () => [{ text: "← return to lounge", next: "prologue_hub", type: "nav" }]
+            },
+            gen_down: {
+                title: "★ madame genevieve",
+                location: "booth 2",
+                sub: "suspect offended · -1 nerve",
+                icon: "🕶️",
+                action: () => makeHostile("genevieve"),
+                text: "genevieve's expression turns glacial. 'how utterly pedestrian. speak to me again and i'll have vic throw you into the alley.' she turns her cold shoulder to you completely.",
+                getChoices: () => [{ text: "← retreat to lounge", next: "prologue_hub", type: "nav" }]
+            },
+
+            talk_julian: {
+                title: "★ julian vance",
+                location: "main bar",
+                sub: "suspect 02 · art dealer",
+                icon: "💎",
+                getText: () => {
+                    const s = getSuspect("julian");
+                    if (s.hostile) return "julian clutches his scotch glass tightly and turns away. 'i'm not saying another word to you without my solicitor present!'";
+                    if (s.unlocked) return "julian wipes sweat from his temple. 'harrington bankrupted my gallery with that rigged auction, and now vic moretti's loan sharks are breathing down my neck.'";
+                    return "julian jumps when you approach the bar, his diamond cufflinks clinking against his glass. 'ha! lovely evening, isn't it? just having a quiet drink before harrington arrives. independent art galleries are thriving, nothing wrong at all!'";
+                },
+                getChoices: () => {
+                    const s = getSuspect("julian");
+                    if (s.unlocked || s.hostile) return [{ text: "← return to lounge", next: "prologue_hub", type: "nav" }];
+                    return [
+                        { text: "1. sympathy-talk about how ruthless billionaire collectors can be to independent galleries", next: "jul_up" },
+                        { text: "2. point out his trembling hands and ask how much money he owes", next: "jul_down" },
+                        { text: "← step back to the lounge", next: "prologue_hub", type: "nav" }
+                    ];
+                }
+            },
+            jul_up: {
+                title: "★ julian vance",
+                location: "main bar",
+                sub: "motive & relationship uncovered",
+                icon: "💎",
+                action: () => unlockSuspect("julian"),
+                text: "julian exhales shakily. 'you have no idea. harrington artificially bid up a renaissance canvas at sotheby's and pulled out, leaving my gallery on the hook for millions. i've even had to borrow from vic moretti's shady backers just to keep the lights on.'",
+                getChoices: () => [{ text: "← return to lounge", next: "prologue_hub", type: "nav" }]
+            },
+            jul_down: {
+                title: "★ julian vance",
+                location: "main bar",
+                sub: "suspect offended · -1 nerve",
+                icon: "💎",
+                action: () => makeHostile("julian"),
+                text: "julian knocks over a dish of olives in panic. 'mind your own business! did my wife trixie put you up to this?!' he storms toward the far end of the bar.",
+                getChoices: () => [{ text: "← retreat to lounge", next: "prologue_hub", type: "nav" }]
+            },
+
+            talk_clara: {
+                title: "★ clara montgomery",
+                location: "booth 4 · corner alcoves",
+                sub: "suspect 03 · tech journalist",
+                icon: "📓",
+                getText: () => {
+                    const s = getSuspect("clara");
+                    if (s.hostile) return "clara caps her fountain pen and glares at you. 'no comment. find your own leads.'";
+                    if (s.unlocked) return "clara lowers her voice. 'harrington blacklisted me, yes, but i'm also tracking how he launders money through vic moretti's restaurant.'";
+                    return "clara shields her leather notebook, an archival fountain pen poised in her hand. 'i don't like people reading over my shoulder. what's your angle tonight?'";
+                },
+                getChoices: () => {
+                    const s = getSuspect("clara");
+                    if (s.unlocked || s.hostile) return [{ text: "← return to lounge", next: "prologue_hub", type: "nav" }];
+                    return [
+                        { text: "1. lean over the booth table to see what names are written in her notebook", next: "cla_down" },
+                        { text: "2. mention that you respected her investigative tech column before it was pulled", next: "cla_up" },
+                        { text: "← step back to the lounge", next: "prologue_hub", type: "nav" }
+                    ];
+                }
+            },
+            cla_up: {
+                title: "★ clara montgomery",
+                location: "booth 4",
+                sub: "motive & relationship uncovered",
+                icon: "📓",
+                action: () => unlockSuspect("clara"),
+                text: "clara's posture relaxes. 'not many people remember that piece after harrington's lawyers buried me. he ruined my career with a smear campaign, so i snuck in tonight using a kitchen press pass to expose his shadow investments with vic moretti.'",
+                getChoices: () => [{ text: "← return to lounge", next: "prologue_hub", type: "nav" }]
+            },
+            cla_down: {
+                title: "★ clara montgomery",
+                location: "booth 4",
+                sub: "suspect offended · -1 nerve",
+                icon: "📓",
+                action: () => makeHostile("clara"),
+                text: "clara slams her notebook shut onto your fingers. 'try that again and you'll be tomorrow's headline.' she locks her bag and refuses to engage.",
+                getChoices: () => [{ text: "← retreat to lounge", next: "prologue_hub", type: "nav" }]
+            },
+
+            talk_vic: {
+                title: "★ victor 'vic' moretti",
+                location: "maître d' stand",
+                sub: "suspect 04 · restaurant owner",
+                icon: "🥃",
+                getText: () => {
+                    const s = getSuspect("vic");
+                    if (s.hostile) return "vic crosses his arms, blocking the stand. 'eat your food and keep your nose out of my business.'";
+                    if (s.unlocked) return "vic mutters darkly. 'harrington's threatening to hand my private ledger to hmrc, and that reporter clara won't stop sniffing around the kitchen.'";
+                    return "vic tugs at his collar, barking orders at the waitstaff before spotting you. 'table service starts in ten. i built l'ombre to be the most discreet room in mayfair—if you've got a problem, make it quick.'";
+                },
+                getChoices: () => {
+                    const s = getSuspect("vic");
+                    if (s.unlocked || s.hostile) return [{ text: "← return to lounge", next: "prologue_hub", type: "nav" }];
+                    return [
+                        { text: "1. praise the atmosphere and tight-lipped discretion of l'ombre", next: "vic_up" },
+                        { text: "2. ask why tax auditors were rumoured to be looking into his club's backers", next: "vic_down" },
+                        { text: "← step back to the lounge", next: "prologue_hub", type: "nav" }
+                    ];
+                }
+            },
+            vic_up: {
+                title: "★ victor moretti",
+                location: "maître d' stand",
+                sub: "motive & relationship uncovered",
+                icon: "🥃",
+                action: () => unlockSuspect("vic"),
+                text: "vic sighs, leaning in. 'discretion is what built l'ombre. too bad lord harrington doesn't respect it—he's threatening to leak my shadow accounting books to hmrc unless i sign over 51% of the club tonight.'",
+                getChoices: () => [{ text: "← return to lounge", next: "prologue_hub", type: "nav" }]
+            },
+            vic_down: {
+                title: "★ victor moretti",
+                location: "maître d' stand",
+                sub: "suspect offended · -1 nerve",
+                icon: "🥃",
+                action: () => makeHostile("vic"),
+                text: "vic's face flushes deep crimson. 'you working with clara montgomery?! stay out of my back rooms or you're barred for life.'",
+                getChoices: () => [{ text: "← retreat to lounge", next: "prologue_hub", type: "nav" }]
+            },
+
+            talk_aris: {
+                title: "★ dr. aris sterling",
+                location: "pillar table 3",
+                sub: "suspect 05 · plastic surgeon",
+                icon: "🩺",
+                getText: () => {
+                    const s = getSuspect("aris");
+                    if (s.hostile) return "dr. sterling gazes past you without blinking. 'i do not converse with amateurs.'";
+                    if (s.unlocked) return "dr. sterling adjusts his platinum cufflinks. 'harrington holds sealed clinic files over my head—and half the people in this room, including trixie vane, rely on my private pharmacy.'";
+                    return "dr. aris sterling inspects his champagne flute for smudges with clinical detachment. 'unless you require a harley street consultation, i prefer solitude before dining.'";
+                },
+                getChoices: () => {
+                    const s = getSuspect("aris");
+                    if (s.unlocked || s.hostile) return [{ text: "← return to lounge", next: "prologue_hub", type: "nav" }];
+                    return [
+                        { text: "1. ask if the rumors about a sealed malpractice settlement at his clinic are true", next: "ari_down" },
+                        { text: "2. acknowledge his reputation as harley street's most meticulous surgeon", next: "ari_up" },
+                        { text: "← step back to the lounge", next: "prologue_hub", type: "nav" }
+                    ];
+                }
+            },
+            ari_up: {
+                title: "★ dr. aris sterling",
+                location: "pillar table 3",
+                sub: "motive & relationship uncovered",
+                icon: "🩺",
+                action: () => unlockSuspect("aris"),
+                text: "aris inclines his head. 'precision is everything—one slip ruins a career. lord harrington bribed a clerk to steal sealed malpractice files from my clinic, and now he's bleeding me dry for hush money.'",
+                getChoices: () => [{ text: "← return to lounge", next: "prologue_hub", type: "nav" }]
+            },
+            ari_down: {
+                title: "★ dr. aris sterling",
+                location: "pillar table 3",
+                sub: "suspect offended · -1 nerve",
+                icon: "🩺",
+                action: () => makeHostile("aris"),
+                text: "aris sets his glass down with a sharp click. 'slander is an expensive habit. do not approach my table again.'",
+                getChoices: () => [{ text: "← retreat to lounge", next: "prologue_hub", type: "nav" }]
+            },
+
+            talk_trixie: {
+                title: "★ beatrice 'trixie' vane",
+                location: "velvet lounge sofa",
+                sub: "suspect 06 · socialite",
+                icon: "🥂",
+                getText: () => {
+                    const s = getSuspect("trixie");
+                    if (s.hostile) return "trixie waves a manicured hand dismissively. 'shoo. i don't speak to bores.'";
+                    if (s.unlocked) return "trixie adjusts her rose silk scarf. 'between my useless husband julian, that snob genevieve, and harrington threatening my cayman trust, i needed one of dr. aris's clinic sedatives just to survive tonight.'";
+                    return "trixie wraps a rose silk scarf around her shoulders, eyeing genevieve across the room. 'ugh, look at genevieve glaring at me. and my soon-to-be ex-husband julian is sweating through his suit at the bar. what a dreadful party.'";
+                },
+                getChoices: () => {
+                    const s = getSuspect("trixie");
+                    if (s.unlocked || s.hostile) return [{ text: "← return to lounge", next: "prologue_hub", type: "nav" }];
+                    return [
+                        { text: "1. match her dry banter and joke that half of mayfair is only here for the drama", next: "tri_up" },
+                        { text: "2. ask seriously if she is hiding offshore assets from julian's divorce lawyers", next: "tri_down" },
+                        { text: "← step back to the lounge", next: "prologue_hub", type: "nav" }
+                    ];
+                }
+            },
+            tri_up: {
+                title: "★ trixie vane",
+                location: "velvet lounge sofa",
+                sub: "motive & relationship uncovered",
+                icon: "🥂",
+                action: () => unlockSuspect("trixie"),
+                text: "trixie lets out a sharp, delighted laugh. 'oh, i like you! truth is, harrington hacked my cayman islands trust documents and threatened to hand them to julian's divorce lawyers unless i pay him off tonight.'",
+                getChoices: () => [{ text: "← return to lounge", next: "prologue_hub", type: "nav" }]
+            },
+            tri_down: {
+                title: "★ trixie vane",
+                location: "velvet lounge sofa",
+                sub: "suspect offended · -1 nerve",
+                icon: "🥂",
+                action: () => makeHostile("trixie"),
+                text: "trixie narrows her eyes. 'did julian hire you?! get away from me, you little creep!'",
+                getChoices: () => [{ text: "← retreat to lounge", next: "prologue_hub", type: "nav" }]
+            },
+
+            talk_elena: {
+                title: "★ elena rossi",
+                location: "sommelier station & cellar door",
+                sub: "suspect 07 · head sommelier",
+                icon: "🍷",
+                getText: () => {
+                    const s = getSuspect("elena");
+                    if (s.hostile) return "elena keeps her back turned, locking the wine cabinet. 'please step away from the sommelier station.'";
+                    if (s.unlocked) return "elena whispers nervously. 'harrington nearly ruined my sommelier license with his fake review—and worse, vic forced me to issue vip cellar keycards to genevieve and julian tonight.'";
+                    return "elena is logging vintage bottles in her cellar ledger with fountain ink, her hands visibly trembling. 'pardon me, i must prepare the 1982 bordeaux for lord harrington's table. everything must be flawless.'";
+                },
+                getChoices: () => {
+                    const s = getSuspect("elena");
+                    if (s.unlocked || s.hostile) return [{ text: "← return to lounge", next: "prologue_hub", type: "nav" }];
+                    return [
+                        { text: "1. ask why her hands are shaking and what she's hiding behind the wine rack", next: "ele_down" },
+                        { text: "2. compliment her impeccable curation of l'ombre's 1982 vintage cellar list", next: "ele_up" },
+                        { text: "← step back to the lounge", next: "prologue_hub", type: "nav" }
+                    ];
+                }
+            },
+            ele_up: {
+                title: "★ elena rossi",
+                location: "sommelier station",
+                sub: "motive & relationship uncovered",
+                icon: "🍷",
+                action: () => unlockSuspect("elena"),
+                text: "elena breathes out in relief. 'thank you... lord harrington published a vicious lie claiming i served counterfeit bordeaux, nearly costing me my master sommelier title. and tonight, vic even gave vip cellar keycards to genevieve and julian!'",
+                getChoices: () => [{ text: "← return to lounge", next: "prologue_hub", type: "nav" }]
+            },
+            ele_down: {
+                title: "★ elena rossi",
+                location: "sommelier station",
+                sub: "suspect offended · -1 nerve",
+                icon: "🍷",
+                action: () => makeHostile("elena"),
+                text: "elena gasps, nearly dropping her decanter. 'how dare you! i would never tamper with a vintage! leave my station immediately!'",
+                getChoices: () => [{ text: "← retreat to lounge", next: "prologue_hub", type: "nav" }]
+            },
+
+            murder_scene: {
+                title: "★ chapter i: blackout at table 1",
+                location: "main dining room, l'ombre",
+                sub: "21:15 gmt · the crime",
+                icon: "💀",
+                text: "lord harrington arrives at 21:00, sneering at the room before taking his seat at booth 1. elena pours his 1982 bordeaux. ten minutes later, the main power cuts out—plunging l'ombre into pitch blackness for ninety seconds.\n\nglass shatters in the dark. when the amber emergency lights kick on, lord harrington lies slumped across table 1, dead. the scent of bitter almonds hangs in the air.\n\ninspector dante bolts the heavy mahogany doors. 'no one leaves! detective, to make an arrest stick we must prove motive, means, and opportunity. search the five locations for physical clues, then bring the suspects into booth 6 to hear and test their blackout alibis!'",
+                getChoices: () => [
+                    { text: "🔍 open the crime scene investigation hub", next: "investigation_hub", type: "evidence" }
+                ]
+            },
+
+            investigation_hub: {
+                title: "★ chapter ii: investigation command hub",
+                location: "l'ombre subterranean floor",
+                sub: "search locations or question suspects in booth 6",
+                icon: "🕵️‍♀️",
+                getText: () => {
+                    const count = gameState.evidenceList.length;
+                    const alibisHeard = gameState.suspects.filter(s => s.alibiKnown).length;
+                    return `inspector dante stands guard by the exit. 'search all five areas of the club for physical evidence, and question the suspects in the interrogation booth to hear where they claim they were during the blackout.'\n\nphysical evidence logged: ${count} / 5 · alibis heard: ${alibisHeard} / 7.`;
+                },
+                getChoices: () => [
+                    {
+                        text: `1. inspect table 1 & harrington's wine glass ${hasEvidence('clue_table') ? '✓' : ''}`,
+                        next: "loc_table",
+                        type: hasEvidence('clue_table') ? "nav" : "evidence", // Restored visual styling!
+                        tag: hasEvidence('clue_table') ? "searched" : "crime scene"
+                    },
+                    {
+                        text: `2. inspect wine cellar & back-of-house kitchen prep ${hasEvidence('clue_means') ? '✓' : ''}`,
+                        next: "loc_means",
+                        type: hasEvidence('clue_means') ? "nav" : "evidence",
+                        tag: hasEvidence('clue_means') ? "searched" : "cellar & kitchen"
+                    },
+                    {
+                        text: `3. sweep the east & west private corridors ${hasEvidence('clue_opportunity') ? '✓' : ''}`,
+                        next: "loc_corridor",
+                        type: hasEvidence('clue_opportunity') ? "nav" : "evidence",
+                        tag: hasEvidence('clue_opportunity') ? "searched" : "corridors"
+                    },
+                    {
+                        text: `4. sweep the velvet curtains & floor around booth 1 ${hasEvidence('clue_trace') ? '✓' : ''}`,
+                        next: "loc_trace",
+                        type: hasEvidence('clue_trace') ? "nav" : "evidence",
+                        tag: hasEvidence('clue_trace') ? "searched" : "forensics"
+                    },
+                    {
+                        text: `5. search harrington's locked briefcase at coat check ${hasEvidence('clue_belongings') ? '✓' : ''}`,
+                        next: "loc_belongings",
+                        type: hasEvidence('clue_belongings') ? "nav" : "evidence",
+                        tag: hasEvidence('clue_belongings') ? "searched" : "belongings"
+                    },
+                    {
+                        text: "🗣️ enter interrogation booth 6 (hear alibis & present evidence)",
+                        next: "interrogation_hub",
+                        tag: "7 suspects"
+                    },
+                    {
+                        text: "⚖️ convene with inspector dante to make your final accusation",
+                        next: "accusation_hub",
+                        type: "press",
+                        tag: "endgame"
+                    }
+                ]
+            },
+
+            loc_table: {
+                title: "★ location 1: lord harrington's booth",
+                location: "table 1 · main dining room",
+                sub: "crime scene examination",
+                icon: "🍷",
+                action: () => addEvidence("clue_table"),
+                getText: () => getCaseClueData("clue_table").description + "\n\n" + getCaseClueData("clue_table").implicates,
+                getChoices: () => [{ text: "← return to investigation hub", next: "investigation_hub", type: "nav" }]
+            },
+            loc_means: {
+                title: "★ location 2: cellar & kitchen prep",
+                location: "back-of-house & wine cellar",
+                sub: "tracing the poison (means)",
+                icon: "🧪",
+                action: () => addEvidence("clue_means"),
+                getText: () => {
+                    const c = getCaseClueData("clue_means");
+                    return `${c.description}\n\ndeduction note: ${c.implicates}`;
+                },
+                getChoices: () => [{ text: "← return to investigation hub", next: "investigation_hub", type: "nav" }]
+            },
+            loc_corridor: {
+                title: "★ location 3: private corridors",
+                location: "east & west hallways",
+                sub: "tracing blackout movement (opportunity)",
+                icon: "🔦",
+                action: () => addEvidence("clue_opportunity"),
+                getText: () => {
+                    const c = getCaseClueData("clue_opportunity");
+                    return `${c.description}\n\ndeduction note: ${c.implicates}`;
+                },
+                getChoices: () => [{ text: "← return to investigation hub", next: "investigation_hub", type: "nav" }]
+            },
+            loc_trace: {
+                title: "★ location 4: booth 1 perimeter sweep",
+                location: "velvet curtains & booth floor",
+                sub: "physical trace evidence",
+                icon: "🔍",
+                action: () => addEvidence("clue_trace"),
+                getText: () => {
+                    const c = getCaseClueData("clue_trace");
+                    return `${c.description}\n\ndeduction note: ${c.implicates}`;
+                },
+                getChoices: () => [{ text: "← return to investigation hub", next: "investigation_hub", type: "nav" }]
+            },
+            loc_belongings: {
+                title: "★ location 5: victim's personal belongings",
+                location: "private coat check",
+                sub: "harrington's locked briefcase",
+                icon: "💼",
+                getText: () => {
+                    if (hasEvidence("clue_belongings")) {
+                        const c = getCaseClueData("clue_belongings");
+                        return `${c.description}\n\ndeduction note: ${c.implicates}`;
+                    }
+                    return "harrington's leather briefcase is secured with a combination cipher. inspector dante points out a cryptic note on the coat check counter referencing the date of harrington's hostile takeover: 'may 14' (05/14).";
+                },
+                getChoices: () => {
+                    if (hasEvidence("clue_belongings")) {
+                        return [{ text: "← return to investigation hub", next: "investigation_hub", type: "nav" }];
+                    }
+                    return [
+                        { text: "🔢 enter cipher: 0514 (the hostile takeover date)", next: "unlock_briefcase", type: "evidence", tag: "solve cipher" },
+                        { text: "🔢 enter cipher: 1231 (new year's eve)", next: "wrong_cipher", type: "press", tag: "guess" },
+                        { text: "🔢 enter cipher: 1025 (auditor arrival)", next: "wrong_cipher", type: "press", tag: "guess" },
+                        { text: "← return to investigation hub", next: "investigation_hub", type: "nav" }
+                    ];
+                }
+            },
+            wrong_cipher: {
+                title: "★ incorrect cipher",
+                location: "private coat check",
+                sub: "combination rejected · -1 nerve",
+                icon: "❌",
+                // Fixed: Moved nerve drain out of action so every wrong attempt properly drains nerve!
+                getText: () => "a sharp red light flashes on the briefcase lock. incorrect combination! that bruised your confidence (-1 nerve). inspect the clues and try again.",
+                getChoices: () => [
+                    { 
+                        text: "← return to coat check", 
+                        next: "loc_belongings", 
+                        type: "nav",
+                        action: () => { gameState.nerves = Math.max(0, gameState.nerves - 1); }
+                    }
+                ]
+            },
+            unlock_briefcase: {
+                title: "★ harrington's blackmail ledger",
+                location: "private coat check",
+                sub: "evidence 5/5 recovered",
+                icon: "📂",
+                action: () => addEvidence("clue_belongings"),
+                getText: () => {
+                    const c = getCaseClueData("clue_belongings");
+                    return `click! the brass latches spring open.\n\n${c.description}\n\n${c.implicates}`;
+                },
+                getChoices: () => [{ text: "← return to investigation hub", next: "investigation_hub", type: "nav" }]
+            },
+
+            interrogation_hub: {
+                title: "★ interrogation room: booth 6",
+                location: "private booth 6",
+                sub: "question suspects about the blackout & test alibis",
+                icon: "🗣️",
+                text: "select a suspect to bring into booth 6. you must first ask where they were during the 90-second blackout to log their alibi, then cross-examine them once you have the corridor and trace evidence.",
+                getChoices: () => {
+                    const list = gameState.suspects.map(s => {
+                        const tagLabel = s.alibiKnown ? `alibi: ${s.alibiStatus}` : "not questioned";
+                        return {
+                            text: `${s.avatar} question ${s.name} (${s.role})`,
+                            next: `interrogate_${s.id}`,
+                            tag: tagLabel
+                        };
+                    });
+                    list.push({ text: "← return to investigation hub", next: "investigation_hub", type: "nav" });
+                    return list;
+                }
+            },
+
+            accusation_hub: {
+                title: "★ final accusation: name the culprit",
+                location: "main dining room",
+                sub: "inspector dante awaits your case",
+                icon: "⚖️",
+                getText: () => {
+                    return `inspector dante steps forward, handcuffs ready. 'before you point the finger, detective, make sure you can prove motive, means, and opportunity against the specific person you are accusing. we have ${gameState.evidenceList.length}/5 physical clues logged.'\n\nwho poisoned lord harrington?`;
+                },
+                getChoices: () => {
+                    const list = gameState.suspects.map(s => ({
+                        text: `⚖️ accuse ${s.name} (${s.role})`,
+                        action: () => evaluateAccusation(s.id),
+                        next: "ending_screen",
+                        tag: s.alibiKnown ? `alibi: ${s.alibiStatus}` : "alibi unknown"
+                    }));
+                    list.push({ text: "← wait — return to investigation hub", next: "investigation_hub", type: "nav" });
+                    return list;
+                }
+            },
+
+            ending_screen: {
+                title: "★ case closed: investigation report",
+                location: "scotland yard case review",
+                sub: "final evaluation",
+                icon: "📋",
+                getText: () => gameState.endingData.narrative,
+                getChoices: () => [
+                    { text: "★ start a new case (new randomized killer & clues)", next: "restart_new", type: "evidence" },
+                    { text: "🔄 replay this exact case from the murder", next: "restart_same" }
+                ]
+            }
+        };
+
+        SUSPECT_TEMPLATE.forEach(t => {
+            const id = t.id;
+            storyNodes[`interrogate_${id}`] = {
+                title: `★ questioning ${t.name}`,
+                location: "interrogation booth 6",
+                sub: `${t.role} · suspect ${t.num}`,
+                icon: t.avatar,
+                getText: () => {
+                    const s = getSuspect(id);
+                    let base = `${s.name} sits across from you in the dimly lit booth.\n\n`;
+                    
+                    if (!s.alibiKnown) {
+                        base += `• blackout alibi: [not yet asked — question them about where they were when the lights went out]\n`;
+                    } else {
+                        base += `• claimed blackout alibi: "${s.alibiClaim}" (${s.alibiStatus})\n`;
+                    }
+
+                    if (s.unlocked) {
+                        base += `• known motive: ${s.grievance}\n• known relationships: ${s.relationship}`;
+                    } else if (s.hostile) {
+                        base += `• status: hostile. they are still furious with you from earlier and won't admit their motive easily.`;
+                    } else {
+                        base += `• status: guarded. you haven't uncovered their personal grievance with harrington yet.`;
+                    }
+
+                    if (s.alibiStatus === "contradicted") {
+                        base += `\n\n[!] alibi contradicted: corridor and trace evidence proves they slipped toward table 1 during the blackout!`;
+                    } else if (s.alibiStatus === "verified") {
+                        base += `\n\n[✓] alibi cleared: physical trace and corridor evidence does not match their position.`;
+                    }
+                    return base;
+                },
+                getChoices: () => {
+                    const s = getSuspect(id);
+                    const choices = [];
+
+                    if (!s.alibiKnown) {
+                        choices.push({
+                            text: "1. ask where they were during the 90-second blackout",
+                            next: `ask_alibi_${id}`,
+                            tag: "log alibi"
+                        });
+                    }
+
+                    if (!s.unlocked) {
+                        if (s.hostile) {
+                            choices.push({
+                                text: "2. press them aggressively to confess their grievance with harrington (-1 nerve)",
+                                next: `force_motive_${id}`,
+                                tag: "-1 nerve"
+                            });
+                        } else {
+                            choices.push({
+                                text: "2. question them about their history and grievance with lord harrington",
+                                next: `ask_motive_${id}`,
+                                tag: "uncover motive"
+                            });
+                        }
+                    }
+
+                    if (s.alibiKnown && !s.confrontedAlibi) {
+                        if (hasEvidence("clue_opportunity") && hasEvidence("clue_trace")) {
+                            choices.push({
+                                text: "3. present corridor & trace evidence to test their blackout alibi",
+                                next: `challenge_alibi_${id}`,
+                                type: "evidence",
+                                tag: "verify / contradict"
+                            });
+                        } else {
+                            choices.push({
+                                text: "3. (sweep the corridors & booth 1 perimeter first to test this alibi)",
+                                next: `interrogate_${id}`,
+                                type: "nav"
+                            });
+                        }
+                    }
+
+                    choices.push({ text: "← back to suspect interrogation list", next: "interrogation_hub", type: "nav" });
+                    return choices;
+                }
+            };
+
+            storyNodes[`ask_alibi_${id}`] = {
+                title: `★ ${t.name}'s blackout statement`,
+                location: "interrogation booth 6",
+                sub: "alibi logged in case files",
+                icon: t.avatar,
+                action: () => {
+                    const s = getSuspect(id);
+                    s.alibiKnown = true;
+                    s.alibiStatus = "unverified";
+                    showToast(`📝 logged ${s.name}'s blackout alibi in dossier.`);
+                },
+                getText: () => {
+                    const s = getSuspect(id);
+                    return `you ask ${s.name} to account for their movements during the ninety seconds of darkness.\n\n${s.alibiClaim}\n\n(this statement has been recorded as 'unverified' in your case files until you test it against physical evidence.)`;
+                },
+                getChoices: () => [{ text: "← continue questioning", next: `interrogate_${id}`, type: "nav" }]
+            };
+
+            storyNodes[`ask_motive_${id}`] = {
+                title: `★ ${t.name}'s motive`,
+                location: "interrogation booth 6",
+                sub: "motive & relationships logged",
+                icon: t.avatar,
+                action: () => unlockSuspect(id),
+                getText: () => {
+                    const s = getSuspect(id);
+                    return `with lord harrington dead in the next room, ${s.name} finally drops their guard and admits:\n\n"${s.grievance}"\n\nthey also note: "${s.relationship}"`;
+                },
+                getChoices: () => [{ text: "← continue questioning", next: `interrogate_${id}`, type: "nav" }]
+            };
+
+            storyNodes[`force_motive_${id}`] = {
+                title: `★ ${t.name} (forced statement)`,
+                location: "interrogation booth 6",
+                sub: "motive uncovered · -1 nerve",
+                icon: t.avatar,
+                action: () => {
+                    gameState.nerves = Math.max(0, gameState.nerves - 1);
+                    unlockSuspect(id);
+                },
+                getText: () => {
+                    const s = getSuspect(id);
+                    return `the shouting match rattles your composure (-1 nerve), but you corner ${s.name} into admitting the truth:\n\n"${s.grievance}"`;
+                },
+                getChoices: () => [{ text: "← continue questioning", next: `interrogate_${id}`, type: "nav" }]
+            };
+
+            storyNodes[`challenge_alibi_${id}`] = {
+                title: `★ testing ${t.name}'s alibi`,
+                location: "interrogation booth 6",
+                sub: "forensic cross-examination",
+                icon: t.avatar,
+                action: () => {
+                    const s = getSuspect(id);
+                    const killer = getKillerObj();
+                    s.confrontedAlibi = true;
+                    // Restored Red Herring Logic: Checks intersection of corridorGroup & itemTrait so shared pairs (Julian/Vic, Clara/Elena) both get flagged if either is killer!
+                    const oppClue = getCaseClueData("clue_opportunity");
+                    const traceClue = getCaseClueData("clue_trace");
+                    const matchesCorridor = oppClue.suspectIds.includes(s.id);
+                    const matchesTrace = traceClue.suspectIds.includes(s.id);
+
+                    if (s.id === killer.id || (matchesCorridor && matchesTrace)) {
+                        s.alibiStatus = "contradicted";
+                        showToast(`⚠️ ${s.name}'s alibi contradicted by physical evidence!`);
+                    } else {
+                        s.alibiStatus = "verified";
+                        showToast(`✓ ${s.name}'s alibi cleared by trace evidence.`);
+                    }
+                },
+                getText: () => {
+                    const s = getSuspect(id);
+                    const killer = getKillerObj();
+                    if (s.alibiStatus === "contradicted") {
+                        return `you lay the corridor motion log and physical trace evidence on the table. ${s.name} pales visibly and stammers:\n\n"alright, i wasn't where i claimed during the blackout! i slipped near table 1 in the dark—but that doesn't prove i had access to the poison! check the cellar and kitchen logs!"`;
+                    } else {
+                        let reason = s.corridorGroup !== killer.corridorGroup
+                            ? "corridor sensors and witnesses confirm they were on the opposite side of the club during the blackout."
+                            : "their attire and personal items do not match the physical trace left behind table 1.";
+                        return `you compare ${s.name}'s statement against the crime scene clues. ${reason}\n\ntheir alibi is updated to 'verified' in your dossier.`;
+                    }
+                },
+                getChoices: () => [{ text: "← return to booth 6", next: `interrogate_${id}`, type: "nav" }]
+            };
+        });
+
+        function unlockSuspect(id) {
+            const s = getSuspect(id);
+            if (s) {
+                s.trust = Math.min(3, s.trust + 1);
+                s.unlocked = true;
+                s.hostile = false;
+                showToast(`📂 motive & relationships unlocked for ${s.name}`);
+            }
+        }
+
+        function makeHostile(id) {
+            const s = getSuspect(id);
+            if (s) {
+                s.hostile = true;
+                gameState.nerves = Math.max(0, gameState.nerves - 1);
+                showToast(`⚠️ ${s.name} offended! (-1 nerve)`);
+            }
+        }
+
+        function evaluateAccusation(accusedId) {
+            const accused = getSuspect(accusedId);
+            const killer = getKillerObj();
+            const isCorrect = accusedId === killer.id;
+
+            const accusedHasMotive = accused.unlocked;
+            const accusedMeansClue = getCaseClueData("clue_means");
+            const accusedHasMeans = accusedMeansClue.suspectIds.includes(accusedId) && hasEvidence("clue_means") && hasEvidence("clue_table");
+            const accusedOpportunityClue = getCaseClueData("clue_opportunity");
+            const accusedHasOpportunity = accusedOpportunityClue.suspectIds.includes(accusedId) && hasEvidence("clue_opportunity") && hasEvidence("clue_trace");
+            const accusedContradicted = accused.alibiStatus === "contradicted";
+
+            const fullProof = isCorrect && accusedHasMotive && accusedHasMeans && accusedHasOpportunity && accusedContradicted;
+
+            let endingType = "";
+            let body = "";
+
+            if (fullProof && gameState.evidenceList.length === 5) {
+                endingType = "ending 1/5: perfect deduction (master detective)";
+                body = `you lay out an airtight chain of deduction specifically against ${accused.name}:\n\n1. motive: ${accused.grievance}\n2. means: proven via ${accusedMeansClue.title}.\n3. opportunity & trace: proven via ${accusedOpportunityClue.title}.\n\nconfronted with irrefutable proof and a shattered alibi, ${accused.name} collapses into a chair and confesses to poisoning lord harrington's 1982 bordeaux. inspector dante snaps on the handcuffs in awe!`;
+            } else if (isCorrect && (accusedHasMeans || accusedHasOpportunity)) {
+                endingType = "ending 2/5: correct culprit, incomplete dossier";
+                body = `you correctly identify ${accused.name} as the murderer! however, because you didn't gather all five pieces of physical evidence or fully contradict their alibi in booth 6, their high-priced barristers challenge parts of the file. still, you caught the killer!`;
+            } else if (isCorrect && !accusedHasMeans && !accusedHasOpportunity) {
+                endingType = "ending 3/5: lucky guess — case thrown out!";
+                body = `you pointed your finger at ${accused.name}—who actually WAS the killer!—but you hadn't collected the physical evidence connecting them to the means or opportunity. inspector dante sighs as they walk out the front door scot-free for lack of proof.`;
+            } else if (!isCorrect && gameState.evidenceList.length >= 4 && getSuspect("vic").unlocked && getSuspect("clara").unlocked && hasEvidence("clue_belongings")) {
+                endingType = "ending 5/5: secret ending — the mayfair syndicate";
+                body = `while you accused ${accused.name} instead of the real poisoner (${killer.name}), your deep investigation into vic moretti's shadow ledger and clara's press files exposed an underground financial syndicate operating beneath l'ombre! scotland yard raids the entire club!`;
+            } else {
+                endingType = "ending 4/5: false accusation";
+                body = `you accuse ${accused.name}, but your case against them falls apart under scrutiny. while the room argues in chaos, the real killer—${killer.name}—quietly slips out into the mayfair fog. investigation failed!`;
+            }
+
+            gameState.endingData.narrative = `${endingType.toUpperCase()}\n\n${body}`;
+            gameState.endingData.reportHTML = `
+                <div class="report-box">
+                    <strong style="color:var(--pastel-pink);">📊 official scotland yard case report</strong><br>
+                    • outcome: ${endingType}<br>
+                    • true killer: ${killer.name} (${killer.role})<br>
+                    • suspect accused: ${accused.name}<br>
+                    • physical evidence logged: ${gameState.evidenceList.length} / 5<br>
+                    • alibis questioned: ${gameState.suspects.filter(s => s.alibiKnown).length} / 7<br>
+                    • motives uncovered: ${gameState.suspects.filter(s => s.unlocked).length} / 7<br>
+                    • nerves remaining: ${gameState.nerves} / ${MAX_NERVES}
+                </div>
+            `;
+        }
+
+        function enterNode(nodeId, customChoiceAction = null) {
+            if (nodeId === "restart_new") {
+                initNewCase(false);
+                renderGame();
+                return;
+            }
+            if (nodeId === "restart_same") {
+                initNewCase(true);
+                renderGame();
+                return;
+            }
+
+            if (customChoiceAction) {
+                customChoiceAction();
+            }
+
+            gameState.currentNode = nodeId;
+            const node = storyNodes[nodeId];
+
+            if (node && node.action && !gameState.visitedNodes.includes(nodeId)) {
+                gameState.visitedNodes.push(nodeId);
+                node.action();
+            }
+
+            renderGame();
+        }
+
+        function renderGame() {
+            const node = storyNodes[gameState.currentNode];
+            if (!node) return;
+
+            document.getElementById("node-title").textContent = node.title;
+            document.getElementById("scene-location").textContent = node.location || "l'ombre, mayfair";
+            document.getElementById("scene-sub").textContent = node.sub || "active investigation";
+            document.getElementById("scene-icon").textContent = node.icon || "🕵️‍♀️";
+
+            document.getElementById("clues-display").textContent = `🗝️ evidence: ${gameState.evidenceList.length} / 5`;
+
+            let stars = "";
+            for (let i = 0; i < gameState.nerves; i++) stars += "⭐️";
+            if (gameState.nerves === 0) stars = "💔 (0/6)";
+            document.getElementById("nerves-display").textContent = `⭐️ nerves (${gameState.nerves}/${MAX_NERVES}): ${stars}`;
+
+            if (gameState.nerves <= 0 && gameState.currentNode !== "ending_screen") {
+                document.getElementById("story-box").textContent = "cold case ending: after too many hostile clashes, your nerves are completely shattered. inspector dante asks you to step outside into the mayfair rain while the trail goes cold.";
+                document.getElementById("report-container").innerHTML = "";
+                const choicesBox = document.getElementById("choices-box");
+                choicesBox.innerHTML = "";
+                const retryBtn = document.createElement("button");
+                retryBtn.className = "choice-btn type-evidence";
+                retryBtn.textContent = "🔄 restart case";
+                retryBtn.onclick = () => enterNode("restart_new");
+                choicesBox.appendChild(retryBtn);
+                renderJournal();
+                return;
+            }
+
+            const storyText = typeof node.getText === "function" ? node.getText() : node.text;
+            document.getElementById("story-box").textContent = storyText;
+
+            const reportContainer = document.getElementById("report-container");
+            if (gameState.currentNode === "ending_screen") {
+                reportContainer.innerHTML = gameState.endingData.reportHTML;
+            } else {
+                reportContainer.innerHTML = "";
+            }
+
+            const choicesBox = document.getElementById("choices-box");
+            choicesBox.innerHTML = "";
+            const choices = typeof node.getChoices === "function" ? node.getChoices() : (node.choices || []);
+
+            choices.forEach(c => {
+                const btn = document.createElement("button");
+                btn.className = `choice-btn ${c.type ? 'type-' + c.type : ''}`;
+
+                const labelSpan = document.createElement("span");
+                labelSpan.textContent = c.text;
+                btn.appendChild(labelSpan);
+
+                if (c.tag) {
+                    const tagSpan = document.createElement("span");
+                    tagSpan.className = "choice-tag";
+                    tagSpan.textContent = c.tag;
+                    btn.appendChild(tagSpan);
+                }
+
+                btn.onclick = () => enterNode(c.next, c.action || null);
+                choicesBox.appendChild(btn);
+            });
+
+            renderJournal();
+        }
+
+        function switchJournalTab(tabName) {
+            gameState.activeTab = tabName;
+            renderJournal();
+        }
+
+        function renderJournal() {
+            ["suspects", "evidence", "notes"].forEach(tab => {
+                const btn = document.getElementById(`tab-btn-${tab}`);
+                if (btn) btn.classList.toggle("active", gameState.activeTab === tab);
+            });
+            document.getElementById("tab-btn-evidence").textContent = `evidence (${gameState.evidenceList.length}/5)`;
+
+            const box = document.getElementById("dossier-box");
+            box.innerHTML = "";
+
+            if (gameState.activeTab === "suspects") {
+                gameState.suspects.forEach(s => {
+                    const card = document.createElement("div");
+                    card.className = `suspect-card ${gameState.expandedSuspectId === s.id ? 'expanded' : ''} ${s.hostile ? 'hostile' : ''}`;
+
+                    const header = document.createElement("button");
+                    header.className = "suspect-card-header";
+                    header.onclick = () => {
+                        gameState.expandedSuspectId = (gameState.expandedSuspectId === s.id) ? "" : s.id;
+                        renderJournal();
+                    };
+
+                    const portrait = document.createElement("div");
+                    portrait.className = "portrait-box";
+                    portrait.textContent = s.avatar;
+
+                    const titleGrp = document.createElement("div");
+                    titleGrp.className = "suspect-title-group";
+                    const nameEl = document.createElement("strong");
+                    nameEl.textContent = s.name;
+                    const roleEl = document.createElement("small");
+                    roleEl.textContent = `${s.role} · suspect ${s.num}`;
+                    titleGrp.appendChild(nameEl);
+                    titleGrp.appendChild(roleEl);
+
+                    const badge = document.createElement("span");
+                    badge.className = `trust-badge ${s.unlocked ? 'trusted' : ''} ${s.hostile ? 'hostile' : ''}`;
+                    badge.textContent = s.hostile ? "hostile" : (s.unlocked ? `trust: ${s.trust}/3` : "guarded");
+
+                    header.appendChild(portrait);
+                    header.appendChild(titleGrp);
+                    header.appendChild(badge);
+                    card.appendChild(header);
+
+                    const details = document.createElement("div");
+                    details.className = "suspect-details";
+
+                    const pLine = document.createElement("p");
+                    pLine.textContent = `personality: ${s.personality}`;
+                    details.appendChild(pLine);
+
+                    const kTitle = document.createElement("div");
+                    kTitle.className = "detail-section-title";
+                    kTitle.textContent = "known information";
+                    details.appendChild(kTitle);
+
+                    const ul = document.createElement("ul");
+                    ul.className = "info-list";
+
+                    const liMotive = document.createElement("li");
+                    liMotive.textContent = s.unlocked ? `motive: ${s.grievance}` : "motive: [guarded — build rapport or interrogate]";
+                    ul.appendChild(liMotive);
+
+                    const liRel = document.createElement("li");
+                    liRel.textContent = s.unlocked ? `relationships: ${s.relationship}` : "relationships: [unknown]";
+                    ul.appendChild(liRel);
+
+                    const liAlibi = document.createElement("li");
+                    if (!s.alibiKnown) {
+                        liAlibi.innerHTML = `alibi: <span class="status-tag status-unknown">not yet questioned</span> [interrogate after the crime]`;
+                    } else {
+                        liAlibi.innerHTML = `alibi: <span class="status-tag status-${s.alibiStatus}">${s.alibiStatus}</span> — ${s.alibiClaim}`;
+                    }
+                    ul.appendChild(liAlibi);
+
+                    details.appendChild(ul);
+
+                    const linkedClues = gameState.evidenceList.filter(e => e.suspectIds && e.suspectIds.includes(s.id));
+                    const eTitle = document.createElement("div");
+                    eTitle.className = "detail-section-title";
+                    eTitle.textContent = "linked physical evidence";
+                    details.appendChild(eTitle);
+
+                    const eText = document.createElement("p");
+                    eText.style.color = linkedClues.length ? "#d2a8ff" : "#8c5a75";
+                    eText.textContent = linkedClues.length
+                        ? linkedClues.map(c => `• ${c.title} (${c.location})`).join("\n")
+                        : "- no confirmed physical evidence linked yet.";
+                    eText.style.whiteSpace = "pre-line";
+                    details.appendChild(eText);
+
+                    card.appendChild(details);
+                    box.appendChild(card);
+                });
+            } else if (gameState.activeTab === "evidence") {
+                if (gameState.evidenceList.length === 0) {
+                    const empty = document.createElement("p");
+                    empty.style.fontSize = "11px";
+                    empty.style.color = "#8c5a75";
+                    empty.textContent = "no physical evidence collected yet. search the 5 locations in l'ombre after the murder.";
+                    box.appendChild(empty);
+                } else {
+                    gameState.evidenceList.forEach(item => {
+                        const card = document.createElement("div");
+                        card.className = "evidence-card";
+
+                        const title = document.createElement("strong");
+                        title.textContent = `🗝️ ${item.title}`;
+
+                        const meta = document.createElement("div");
+                        meta.className = "evidence-meta";
+                        meta.textContent = `location: ${item.location} · status: ${item.status}`;
+
+                        const desc = document.createElement("p");
+                        desc.textContent = item.description;
+
+                        const imp = document.createElement("div");
+                        imp.className = "evidence-implicates";
+                        imp.textContent = item.implicates;
+
+                        card.appendChild(title);
+                        card.appendChild(meta);
+                        card.appendChild(desc);
+                        card.appendChild(imp);
+                        box.appendChild(card);
+                    });
+                }
+            } else if (gameState.activeTab === "notes") {
+                const label = document.createElement("p");
+                label.style.fontSize = "11px";
+                label.style.color = "#d8a0c2";
+                label.textContent = "detective's scratchpad (saved via main save button):"; // Fixed label accuracy!
+
+                const textarea = document.createElement("textarea");
+                textarea.className = "notes-area";
+                textarea.placeholder = "type your suspect theories, alibi contradictions, and deductions here...";
+                textarea.value = gameState.playerNotes || "";
+                textarea.oninput = (e) => { gameState.playerNotes = e.target.value; };
+
+                box.appendChild(label);
+                box.appendChild(textarea);
+            }
+        }
+
+        let toastTimeout = null;
+        function showToast(msg) {
+            const banner = document.getElementById("toast-banner");
+            document.getElementById("toast-text").textContent = msg;
+            banner.classList.add("show");
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(hideToast, 4000);
+        }
+        function hideToast() {
+            document.getElementById("toast-banner").classList.remove("show");
+        }
+
+        function toggleDossier() {
+            document.getElementById("dossier-section").classList.toggle("collapsed");
+        }
+
+        function saveGame() {
+            try {
+                localStorage.setItem("debbyOS_mysterySave_v3", JSON.stringify(gameState));
+                showToast("💾 investigation state saved to browser storage.");
+            } catch (e) {
+                alert("could not save game to local storage.");
+            }
+        }
+
+        function loadGame() {
+            try {
+                const raw = localStorage.getItem("debbyOS_mysterySave_v3");
+                if (!raw) {
+                    showToast("⚠️ no saved investigation found.");
+                    return;
+                }
+                const parsed = JSON.parse(raw);
+                if (!parsed || parsed.version !== SAVE_VERSION || !Array.isArray(parsed.suspects) || !parsed.trueKiller) {
+                    showToast("⚠️ saved game is from an older version and cannot be loaded.");
+                    return;
+                }
+                gameState = parsed;
+                renderGame();
+                showToast("📂 saved investigation loaded successfully!");
+            } catch (e) {
+                showToast("⚠️ corrupted save data detected.");
+            }
+        }
+
+        function resetGamePrompt() {
+            if (confirm("reset your current investigation and generate a brand new case?")) {
+                initNewCase(false);
+                renderGame();
+                showToast("🔄 new case initialized.");
+            }
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, "0");
+            const mins = String(now.getMinutes()).padStart(2, "0");
+            document.getElementById("live-clock").textContent = `${hours}:${mins}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        initNewCase(false);
+        renderGame();
+    </script>
+</body>
+</html>

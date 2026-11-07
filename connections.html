@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dictatordebby.com/games/connections</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .game-layout {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-width: 0;
+        }
+        @media(min-width: 900px) {
+            .game-layout { flex-direction: row; }
+        }
+        .main-game-window { flex: 2; }
+        .side-windows { flex: 1; display: flex; flex-direction: column; gap: 15px; }
+
+        .game-instructions {
+            font-size: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .lives-container { font-size: 16px; letter-spacing: 2px; }
+
+        .toast-banner {
+            background: #5a2033;
+            color: #fff;
+            border: 1px solid var(--pastel-pink);
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            font-size: 11px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            animation: fadeIn 0.2s ease-in;
+        }
+        .toast-banner.show { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+        .mini-btn {
+            background: var(--plum-bg);
+            color: var(--pastel-pink);
+            border: 1px solid var(--pastel-pink);
+            padding: 4px 10px;
+            font-size: 11px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .mini-btn:hover { background: var(--pastel-pink); color: var(--dark-plum); }
+
+        #solved-groups { display: flex; flex-direction: column; gap: 8px; }
+        .solved-row {
+            padding: 12px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 13px;
+            border: 1px solid rgba(0,0,0,0.2);
+            animation: solvedIn 0.35s ease;
+        }
+        @keyframes solvedIn {
+            from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .grid-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .tile {
+            background: var(--pastel-pink);
+            color: var(--dark-plum);
+            border: none;
+            padding: 18px 4px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            transition: transform 0.1s, background 0.2s, box-shadow 0.2s;
+            word-break: break-word;
+            min-height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .tile:hover { filter: brightness(0.95); transform: translateY(-1px); }
+        .tile.selected {
+            background: var(--dark-plum);
+            color: var(--pastel-pink);
+            outline: 2px solid var(--pastel-pink);
+            transform: translateY(-1px);
+        }
+        .tile.shake { animation: shake 0.35s; }
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        .game-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 5px;
+        }
+        .game-btn {
+            background: var(--pastel-pink);
+            color: var(--dark-plum);
+            border: none;
+            padding: 10px 16px;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .game-btn:hover { background: #fff; }
+        .game-btn.primary {
+            background: var(--dark-plum);
+            color: var(--pastel-pink);
+            border: 1px solid var(--pastel-pink);
+        }
+        .game-btn.primary:hover {
+            background: var(--pastel-pink);
+            color: var(--dark-plum);
+        }
+
+        .category-hint-item {
+            font-size: 11px;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px dashed rgba(242, 198, 222, 0.2);
+            color: var(--pastel-pink);
+        }
+
+        @media (max-width: 500px) {
+            .grid-board { gap: 6px; }
+            .tile { padding: 12px 3px; font-size: 10px; min-height: 48px; }
+            .game-btn { flex: 1; padding: 10px 8px; font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="browser-bar">
+        <div class="window-dots">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+        </div>
+        <div class="url-box">https://dictatordebby.com/games/connections</div>
+        <div class="theme-switch">pastel star 🌸</div>
+    </div>
+
+    <div class="os-container">
+        <header class="main-banner">
+            <div class="banner-decor left">🪐</div>
+            <div class="banner-center">
+                <div class="star-logo">⭐️</div>
+                <h1>dictator debby</h1>
+                <p class="banner-sub">games ☆ videos ☆ more</p>
+            </div>
+            <div class="banner-decor right">🎀</div>
+        </header>
+
+        <div class="workspace">
+            <nav class="sidebar">
+                <a href="index.html" class="nav-item">🏠 home</a>
+                <a href="games.html" class="nav-item active">🎮 games</a>
+                <a href="https://www.youtube.com/@dictatordebby" target="_blank" class="nav-item">🎬 videos</a>
+                <a href="about.html" class="nav-item">⭐ about me</a>
+                <a href="favourites.html" class="nav-item">💖 favourites</a>
+                <a href="guestbook.html" class="nav-item">💌 guestbook</a>
+                <a href="settings.html" class="nav-item">⚙️ settings</a>
+            </nav>
+
+            <div class="game-layout">
+                <section class="retro-window main-game-window">
+                    <div class="window-titlebar">
+                        <span class="win-title">★ connections</span>
+                        <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                    </div>
+                    <div class="window-body">
+                        <div class="game-instructions">
+                            <span>find groups of four items that share something in common.</span>
+                            <span class="lives-container" id="lives-display">⭐️⭐️⭐️⭐️</span>
+                        </div>
+
+                        <div id="toast-banner" class="toast-banner" role="status" aria-live="polite">
+                            <span id="toast-text">select exactly 4 words!</span>
+                            <button class="mini-btn" onclick="hideToast()">ok</button>
+                        </div>
+
+                        <div id="solved-groups"></div>
+                        <div class="grid-board" id="game-grid"></div>
+
+                        <div class="game-controls">
+                            <button class="game-btn" onclick="shuffleUnsolved()">shuffle</button>
+                            <button class="game-btn" onclick="deselectAll()">deselect all</button>
+                            <button class="game-btn primary" onclick="submitGuess()">submit</button>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="side-windows">
+                    <section class="retro-window">
+                        <div class="window-titlebar">
+                            <span class="win-title">★ how to play</span>
+                            <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                        </div>
+                        <div class="window-body" style="font-size: 11px; line-height: 1.4;">
+                            <p>1. select four tiles that you think belong to the same category.</p>
+                            <p>2. click submit to check your answer.</p>
+                            <p>3. get all four categories before you run out of lives!</p>
+                        </div>
+                    </section>
+
+                    <section class="retro-window">
+                        <div class="window-titlebar">
+                            <span class="win-title">★ category hints</span>
+                            <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                        </div>
+                        <div class="window-body" id="category-hints"></div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <footer class="taskbar">
+            <button class="start-btn" onclick="window.location.href='index.html'">⭐ start</button>
+            <div class="task-pill">dictatordebby / games / connections</div>
+            <div class="taskbar-right">
+                <span class="audio-icon" title="sound">🔊</span>
+                <span class="wifi-icon">📶</span>
+                <span class="clock" id="live-clock">00:00</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        /* ---------------------------------------------------------
+           PUZZLE BANK
+           Each puzzle has exactly 4 categories x 4 words.
+           --------------------------------------------------------- */
+        const puzzleBank = [
+            {
+                categories: [
+                    { name: "Shades of Purple", words: ["plum", "lavender", "violet", "lilac"], color: "#5a2033", textColor: "#fce8f3" },
+                    { name: "Nickelodeon Cartoon Protagonists", words: ["aang", "korra", "arnold", "tommy"], color: "#f2c6de", textColor: "#4a1525" },
+                    { name: "Social Media Platforms", words: ["tiktok", "tumblr", "youtube", "instagram"], color: "#2e1422", textColor: "#fce8f3" },
+                    { name: "Hot Drinks", words: ["matcha", "espresso", "chai", "cocoa"], color: "#ffffff", textColor: "#4a1525" }
+                ]
+            },
+            {
+                categories: [
+                    { name: "Comfort Foods", words: ["noodles", "pizza", "fries", "dumplings"], color: "#f2c6de", textColor: "#4a1525" },
+                    { name: "Planets in Our Solar System", words: ["mars", "venus", "jupiter", "saturn"], color: "#5a2033", textColor: "#fce8f3" },
+                    { name: "Fictional Magic Schools", words: ["hogwarts", "beauxbatons", "durmstrang", "ilvermorny"], color: "#2e1422", textColor: "#fce8f3" },
+                    { name: "Things Found On A Desk", words: ["laptop", "notebook", "pen", "lamp"], color: "#ffffff", textColor: "#4a1525" }
+                ]
+            },
+            {
+                categories: [
+                    { name: "Celestial Bodies", words: ["star", "comet", "meteor", "planet"], color: "#5a2033", textColor: "#fce8f3" },
+                    { name: "Types of Hats", words: ["beanie", "beret", "fedora", "bucket"], color: "#f2c6de", textColor: "#4a1525" },
+                    { name: "Card Games", words: ["poker", "blackjack", "solitaire", "bridge"], color: "#2e1422", textColor: "#fce8f3" },
+                    { name: "Coding Languages", words: ["python", "javascript", "ruby", "swift"], color: "#ffffff", textColor: "#4a1525" }
+                ]
+            },
+            {
+                categories: [
+                    { name: "Musical Genres", words: ["jazz", "techno", "ambient", "grunge"], color: "#f2c6de", textColor: "#4a1525" },
+                    { name: "Office Supplies", words: ["stapler", "binder", "eraser", "folder"], color: "#5a2033", textColor: "#fce8f3" },
+                    { name: "Cat Breeds", words: ["siamese", "persian", "sphynx", "ragdoll"], color: "#2e1422", textColor: "#fce8f3" },
+                    { name: "Coffee Orders", words: ["latte", "espresso", "mocha", "americano"], color: "#ffffff", textColor: "#4a1525" }
+                ]
+            },
+            {
+                categories: [
+                    { name: "Gems & Crystals", words: ["ruby", "sapphire", "emerald", "amethyst"], color: "#2e1422", textColor: "#fce8f3" },
+                    { name: "Cloud Types", words: ["cirrus", "cumulus", "stratus", "nimbus"], color: "#5a2033", textColor: "#fce8f3" },
+                    { name: "Board Games", words: ["monopoly", "cluedo", "catan", "risk"], color: "#f2c6de", textColor: "#4a1525" },
+                    { name: "Baked Goods", words: ["croissant", "muffin", "scone", "brioche"], color: "#ffffff", textColor: "#4a1525" }
+                ]
+            },
+            {
+                categories: [
+                    { name: "Art Supplies", words: ["canvas", "easel", "palette", "charcoal"], color: "#5a2033", textColor: "#fce8f3" },
+                    { name: "Retro Tech", words: ["pager", "walkman", "floppy", "camcorder"], color: "#f2c6de", textColor: "#4a1525" },
+                    { name: "Dog Breeds", words: ["poodle", "beagle", "pug", "husky"], color: "#2e1422", textColor: "#fce8f3" },
+                    { name: "Herbs & Spices", words: ["basil", "oregano", "thyme", "rosemary"], color: "#ffffff", textColor: "#4a1525" }
+                ]
+            },
+            {
+                categories: [
+                    { name: "Things That Are Yellow", words: ["banana", "lemon", "sunflower", "canary"], color: "#5a2033", textColor: "#fce8f3" },
+                    { name: "Words Before 'Cake'", words: ["cup", "cheese", "pan", "short"], color: "#f2c6de", textColor: "#4a1525" },
+                    { name: "Things That Have Keys", words: ["piano", "keyboard", "lock", "cipher"], color: "#2e1422", textColor: "#fce8f3" },
+                    { name: "Dance Styles", words: ["ballet", "salsa", "tango", "waltz"], color: "#ffffff", textColor: "#4a1525" }
+                ]
+            },
+            {
+                categories: [
+                    { name: "Haunted House Finds", words: ["ghost", "cobweb", "skeleton", "cauldron"], color: "#2e1422", textColor: "#fce8f3" },
+                    { name: "Words After 'Snow'", words: ["flake", "man", "ball", "board"], color: "#5a2033", textColor: "#fce8f3" },
+                    { name: "Things You Can Break", words: ["promise", "record", "ice", "heart"], color: "#f2c6de", textColor: "#4a1525" },
+                    { name: "Types of Tea", words: ["oolong", "chamomile", "peppermint", "jasmine"], color: "#ffffff", textColor: "#4a1525" }
+                ]
+            },
+            {
+                categories: [
+                    { name: "Birthday Party Items", words: ["balloon", "confetti", "present", "streamer"], color: "#f2c6de", textColor: "#4a1525" },
+                    { name: "Things With Wheels", words: ["bicycle", "bus", "skateboard", "wagon"], color: "#5a2033", textColor: "#fce8f3" },
+                    { name: "Words That Mean Cold", words: ["chilly", "frosty", "frigid", "icy"], color: "#2e1422", textColor: "#fce8f3" },
+                    { name: "Types of Fish", words: ["salmon", "tuna", "trout", "cod"], color: "#ffffff", textColor: "#4a1525" }
+                ]
+            },
+            {
+                categories: [
+                    { name: "Kitchen Tools", words: ["whisk", "spatula", "grater", "peeler"], color: "#5a2033", textColor: "#fce8f3" },
+                    { name: "Fictional Wizards", words: ["gandalf", "merlin", "dumbledore", "hermione"], color: "#f2c6de", textColor: "#4a1525" },
+                    { name: "Words After 'Sun'", words: ["flower", "light", "rise", "set"], color: "#2e1422", textColor: "#fce8f3" },
+                    { name: "Olympic Sports", words: ["fencing", "rowing", "judo", "curling"], color: "#ffffff", textColor: "#4a1525" }
+                ]
+            }
+        ];
+
+        let currentPuzzle = null;
+        let activeTiles = [];
+        let lives = 4;
+        let unsolvedWords = [];
+
+        let toastTimeout = null;
+        function showToast(msg) {
+            const banner = document.getElementById('toast-banner');
+            document.getElementById('toast-text').textContent = msg;
+            banner.classList.add('show');
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(hideToast, 4000);
+        }
+        function hideToast() {
+            document.getElementById('toast-banner').classList.remove('show');
+        }
+
+        function initGame() {
+            document.getElementById('solved-groups').innerHTML = '';
+            lives = 4;
+            updateLivesDisplay();
+            activeTiles = [];
+
+            let newIdx;
+            do {
+                newIdx = Math.floor(Math.random() * puzzleBank.length);
+            } while (puzzleBank[newIdx] === currentPuzzle && puzzleBank.length > 1);
+
+            currentPuzzle = puzzleBank[newIdx];
+
+            unsolvedWords = [];
+            currentPuzzle.categories.forEach(cat => {
+                cat.words.forEach(word => unsolvedWords.push({ word: word, categoryName: cat.name }));
+            });
+            shuffleArray(unsolvedWords);
+
+            renderGrid();
+            renderHints();
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function renderGrid() {
+            const gridEl = document.getElementById('game-grid');
+            gridEl.innerHTML = '';
+
+            unsolvedWords.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'tile';
+                btn.innerText = item.word;
+                if (activeTiles.includes(item.word)) {
+                    btn.classList.add('selected');
+                }
+                btn.onclick = () => toggleTile(item.word);
+                gridEl.appendChild(btn);
+            });
+        }
+
+        function renderHints() {
+            const hintsEl = document.getElementById('category-hints');
+            hintsEl.innerHTML = '';
+            currentPuzzle.categories.forEach((cat, index) => {
+                hintsEl.innerHTML += `
+                    <div class="category-hint-item">
+                        <strong>hint ${index + 1}:</strong> ${cat.name}
+                    </div>
+                `;
+            });
+        }
+
+        function toggleTile(word) {
+            if (activeTiles.includes(word)) {
+                activeTiles = activeTiles.filter(w => w !== word);
+            } else {
+                if (activeTiles.length < 4) {
+                    activeTiles.push(word);
+                }
+            }
+            renderGrid();
+        }
+
+        function deselectAll() {
+            activeTiles = [];
+            renderGrid();
+        }
+
+        function shuffleUnsolved() {
+            shuffleArray(unsolvedWords);
+            renderGrid();
+        }
+
+        function submitGuess() {
+            if (activeTiles.length !== 4) {
+                showToast('select exactly 4 words!');
+                return;
+            }
+
+            let matchedCategory = null;
+            for (let cat of currentPuzzle.categories) {
+                const matches = activeTiles.filter(w => cat.words.includes(w));
+                if (matches.length === 4) {
+                    matchedCategory = cat;
+                    break;
+                }
+            }
+
+            if (matchedCategory) {
+                unsolvedWords = unsolvedWords.filter(item => !matchedCategory.words.includes(item.word));
+
+                const solvedContainer = document.getElementById('solved-groups');
+                const row = document.createElement('div');
+                row.className = 'solved-row';
+                row.style.backgroundColor = matchedCategory.color;
+                row.style.color = matchedCategory.textColor;
+                row.innerHTML = `<strong>${matchedCategory.name.toUpperCase()}</strong><br><span style="font-size:11px; font-weight:normal;">${matchedCategory.words.join(', ')}</span>`;
+                solvedContainer.appendChild(row);
+
+                activeTiles = [];
+                renderGrid();
+
+                if (unsolvedWords.length === 0) {
+                    showToast('amazing! you solved it! shuffling into a new puzzle set... 🎉');
+                    setTimeout(() => { initGame(); }, 1200);
+                }
+            } else {
+                lives--;
+                updateLivesDisplay();
+                showToast('not quite right! try again.');
+                deselectAll();
+
+                if (lives <= 0) {
+                    showToast('game over! resetting puzzle...');
+                    setTimeout(() => { initGame(); }, 1200);
+                }
+            }
+        }
+
+        function updateLivesDisplay() {
+            let stars = '';
+            for (let i = 0; i < lives; i++) stars += '⭐️';
+            document.getElementById('lives-display').innerText = stars;
+        }
+
+        initGame();
+    </script>
+</body>
+</html>
