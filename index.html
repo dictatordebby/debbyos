@@ -54,6 +54,109 @@
             -webkit-line-clamp: 1;
             -webkit-box-orient: vertical;
         }
+
+        /* Retro CD Player Widget */
+        .cd-player-box {
+            background: var(--plum-bg);
+            border: 1px solid var(--pastel-pink);
+            border-radius: 4px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .cd-top-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .cd-disc {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: var(--dark-plum);
+            border: 2px solid var(--pastel-pink);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            flex-shrink: 0;
+            user-select: none;
+        }
+        .cd-disc.spinning {
+            animation: spinDisc 2.8s linear infinite;
+        }
+        @keyframes spinDisc {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .cd-track-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .cd-status-label {
+            font-size: 9px;
+            color: #d8a0c2;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+        .cd-track-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--pastel-pink);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cd-track-artist {
+            font-size: 11px;
+            color: var(--text-pink);
+            margin-top: 2px;
+        }
+        .cd-progress-wrap {
+            width: 100%;
+            height: 6px;
+            background: #12060d;
+            border: 1px solid #5a2033;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .cd-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: var(--pastel-pink);
+            transition: width 0.2s linear;
+        }
+        .cd-controls-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .cd-btn-group {
+            display: flex;
+            gap: 6px;
+        }
+        .cd-btn {
+            background: var(--dark-plum);
+            color: var(--pastel-pink);
+            border: 1px solid var(--pastel-pink);
+            padding: 5px 10px;
+            font-size: 11px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .cd-btn:hover {
+            background: var(--pastel-pink);
+            color: var(--dark-plum);
+        }
+        .cd-yt-link {
+            font-size: 10px;
+            color: var(--pastel-pink);
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -128,8 +231,39 @@
                     </div>
                 </section>
 
+                <!-- Retro CD Player / Current Rotation Window -->
+                <section class="retro-window">
+                    <div class="window-titlebar">
+                        <span class="win-title">★ cd player / current rotation</span>
+                        <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                    </div>
+                    <div class="window-body">
+                        <div class="cd-player-box">
+                            <div class="cd-top-row">
+                                <div class="cd-disc" id="cd-disc">💿</div>
+                                <div class="cd-track-info">
+                                    <div class="cd-status-label" id="cd-status-label">paused · chiptune synth</div>
+                                    <div class="cd-track-title" id="cd-track-title">into you (8-bit mix)</div>
+                                    <div class="cd-track-artist" id="cd-track-artist">ariana grande</div>
+                                </div>
+                            </div>
+                            <div class="cd-progress-wrap">
+                                <div class="cd-progress-bar" id="cd-progress-bar"></div>
+                            </div>
+                            <div class="cd-controls-row">
+                                <div class="cd-btn-group">
+                                    <button type="button" class="cd-btn" onclick="cdPrevTrack()" title="previous track">⏮</button>
+                                    <button type="button" class="cd-btn" id="cd-play-btn" onclick="cdTogglePlay()">▶ play</button>
+                                    <button type="button" class="cd-btn" onclick="cdNextTrack()" title="next track">⏭</button>
+                                </div>
+                                <a href="https://www.youtube.com/results?search_query=ariana+grande+into+you" target="_blank" class="cd-yt-link" id="cd-yt-link">listen on yt ↗</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Retro Visitor Counter Window -->
-                <section class="retro-window" style="grid-column: 1 / -1;">
+                <section class="retro-window">
                     <div class="window-titlebar">
                         <span class="win-title">★ visitor log & system status</span>
                         <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
@@ -155,7 +289,7 @@
         </div>
 
         <footer class="taskbar">
-            <button class="start-btn" onclick="window.location.href='index.html'">⭐ start</button>
+            <button class="start-btn">⭐ start</button>
             <div class="task-pill">dictatordebby</div>
             <div class="taskbar-right">
                 <span class="audio-icon" title="sound">🔊</span>
@@ -167,6 +301,7 @@
 
     <script src="app.js"></script>
     <script>
+        /* ---------- YOUTUBE RSS FEED ---------- */
         async function fetchLatestYouTubeVideo() {
             const channelId = 'UCqRH0ufVji0lsCMgqsoNb1w';
             const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
@@ -214,6 +349,119 @@
         }
 
         fetchLatestYouTubeVideo();
+
+        /* ---------- RETRO CD PLAYER (CHIPTUNE ROTATION) ---------- */
+        const CD_TRACKS = [
+            {
+                title: "into you (chiptune mix)",
+                artist: "ariana grande",
+                query: "ariana+grande+into+you",
+                notes: [440, 523.25, 659.25, 587.33, 523.25, 440, 392, 440]
+            },
+            {
+                title: "can't get you out of my head",
+                artist: "kylie minogue",
+                query: "kylie+minogue+cant+get+you+out+of+my+head",
+                notes: [329.63, 392, 440, 392, 329.63, 293.66, 329.63, 261.63]
+            },
+            {
+                title: "candy store (broadway synth)",
+                artist: "heathers: the musical",
+                query: "heathers+musical+candy+store",
+                notes: [523.25, 659.25, 783.99, 659.25, 587.33, 698.46, 659.25, 523.25]
+            },
+            {
+                title: "defying gravity (emerald 8-bit)",
+                artist: "wicked (musical)",
+                query: "wicked+defying+gravity",
+                notes: [293.66, 440, 415.30, 440, 493.88, 587.33, 523.25, 440]
+            },
+            {
+                title: "say my name (retro club)",
+                artist: "destiny's child",
+                query: "destinys+child+say+my+name",
+                notes: [392, 440, 493.88, 392, 349.23, 329.63, 293.66, 329.63]
+            },
+            {
+                title: "goin' back to hogwarts",
+                artist: "a very potter musical",
+                query: "a+very+potter+musical+going+back+to+hogwarts",
+                notes: [261.63, 329.63, 392, 523.25, 493.88, 392, 440, 523.25]
+            }
+        ];
+
+        let currentTrackIdx = 0;
+        let isPlayingCD = false;
+        let noteStep = 0;
+        let cdInterval = null;
+
+        function renderCDTrack() {
+            const track = CD_TRACKS[currentTrackIdx];
+            document.getElementById('cd-track-title').textContent = track.title;
+            document.getElementById('cd-track-artist').textContent = track.artist;
+            document.getElementById('cd-yt-link').href = `https://www.youtube.com/results?search_query=${track.query}`;
+            document.getElementById('cd-status-label').textContent = isPlayingCD
+                ? `now playing (${currentTrackIdx + 1}/${CD_TRACKS.length})`
+                : `paused · track ${currentTrackIdx + 1}/${CD_TRACKS.length}`;
+            document.getElementById('cd-play-btn').textContent = isPlayingCD ? '⏸ pause' : '▶ play';
+            document.getElementById('cd-disc').classList.toggle('spinning', isPlayingCD);
+            if (!isPlayingCD) {
+                document.getElementById('cd-progress-bar').style.width = '0%';
+            }
+        }
+
+        function playChiptuneStep() {
+            const track = CD_TRACKS[currentTrackIdx];
+            const freq = track.notes[noteStep % track.notes.length];
+            const progress = (((noteStep % track.notes.length) + 1) / track.notes.length) * 100;
+            document.getElementById('cd-progress-bar').style.width = `${progress}%`;
+
+            if (window.debbyOS_isAudioEnabled && window.debbyOS_isAudioEnabled()) {
+                const ctx = window.debbyOS_getAudioContext ? window.debbyOS_getAudioContext() : null;
+                if (ctx) {
+                    try {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                        gain.gain.setValueAtTime(0.035, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start();
+                        osc.stop(ctx.currentTime + 0.22);
+                    } catch (e) {}
+                }
+            }
+            noteStep++;
+        }
+
+        function cdTogglePlay() {
+            isPlayingCD = !isPlayingCD;
+            if (isPlayingCD) {
+                noteStep = 0;
+                playChiptuneStep();
+                cdInterval = setInterval(playChiptuneStep, 260);
+            } else {
+                clearInterval(cdInterval);
+                cdInterval = null;
+            }
+            renderCDTrack();
+        }
+
+        function cdNextTrack() {
+            currentTrackIdx = (currentTrackIdx + 1) % CD_TRACKS.length;
+            noteStep = 0;
+            renderCDTrack();
+        }
+
+        function cdPrevTrack() {
+            currentTrackIdx = (currentTrackIdx - 1 + CD_TRACKS.length) % CD_TRACKS.length;
+            noteStep = 0;
+            renderCDTrack();
+        }
+
+        renderCDTrack();
     </script>
 </body>
 </html>

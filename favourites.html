@@ -7,9 +7,12 @@
     <link rel="stylesheet" href="style.css">
     <style>
         .fav-grid {
+            flex: 1;
             display: grid;
             grid-template-columns: 1fr;
             gap: 15px;
+            min-width: 0;
+            align-content: start;
         }
         @media(min-width: 900px) {
             .fav-grid { grid-template-columns: 1fr 1fr; }
@@ -28,7 +31,7 @@
             border-bottom: 1px dashed rgba(242, 198, 222, 0.2);
             padding-bottom: 5px;
         }
-        /* Tag cloud style instead of long boring lists */
+        /* Tag cloud style */
         .tag-cloud {
             display: flex;
             flex-wrap: wrap;
@@ -42,12 +45,103 @@
             border-radius: 3px;
             font-size: 11px;
             transition: 0.15s;
+            cursor: pointer;
         }
         .media-tag:hover {
             background: var(--pastel-pink);
             color: var(--dark-plum);
             border-color: var(--pastel-pink);
         }
+        .media-tag.filter-hidden {
+            display: none;
+        }
+        .media-tag.filter-match {
+            border-color: var(--pastel-pink);
+            box-shadow: 0 0 6px rgba(242, 198, 222, 0.35);
+        }
+        .media-tag.spotlight-pick {
+            background: var(--pastel-pink) !important;
+            color: var(--dark-plum) !important;
+            border-color: #fff !important;
+            font-weight: bold;
+            transform: scale(1.08);
+            box-shadow: 0 0 14px var(--pastel-pink);
+        }
+
+        /* Interactive Toolbar */
+        .fav-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .fav-search-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            flex: 1;
+            min-width: 220px;
+        }
+        .fav-search-input, .fav-category-select {
+            background: #12060d;
+            color: var(--text-pink);
+            border: 1px solid var(--pastel-pink);
+            border-radius: 4px;
+            padding: 7px 10px;
+            font-size: 11px;
+            font-family: inherit;
+        }
+        .fav-search-input {
+            flex: 1;
+            min-width: 150px;
+        }
+        .fav-action-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        .fav-count-badge {
+            background: var(--plum-bg);
+            color: var(--pastel-pink);
+            border: 1px solid #5a2033;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .rewatch-btn {
+            background: var(--pastel-pink);
+            color: var(--dark-plum);
+            border: none;
+            padding: 7px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .rewatch-btn:hover {
+            background: #fff;
+        }
+
+        .fav-toast {
+            background: #5a2033;
+            color: #fff;
+            border: 1px solid var(--pastel-pink);
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-top: 8px;
+            font-size: 11px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .fav-toast.show {
+            display: flex;
+        }
+
         /* Custom scrollbar matching debbyOS plum theme */
         ::-webkit-scrollbar {
             width: 6px;
@@ -99,6 +193,39 @@
             </nav>
 
             <main class="fav-grid">
+                <!-- Interactive Filter & Spin the Wheel Window -->
+                <section class="retro-window" style="grid-column: 1 / -1;">
+                    <div class="window-titlebar">
+                        <span class="win-title">★ archive search & random rewatch picker</span>
+                        <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                    </div>
+                    <div class="window-body">
+                        <div class="fav-toolbar">
+                            <div class="fav-search-group">
+                                <input type="text" id="fav-search-input" class="fav-search-input" placeholder="🔍 search shows, movies, musicals, games...">
+                                <select id="fav-category-select" class="fav-category-select" aria-label="filter by category">
+                                    <option value="all">all categories</option>
+                                    <option value="tv-live">📺 tv (live-action)</option>
+                                    <option value="movies-live">🍿 movies (live-action)</option>
+                                    <option value="tv-anim">🖍️ tv (animated)</option>
+                                    <option value="anime">🌸 anime</option>
+                                    <option value="movies-anim">🍿 movies (animated)</option>
+                                    <option value="books-games">📚 books, comics & games</option>
+                                    <option value="music">🎵 music & musicals</option>
+                                </select>
+                            </div>
+                            <div class="fav-action-group">
+                                <span class="fav-count-badge" id="fav-count-badge">0 favourites logged</span>
+                                <button type="button" class="rewatch-btn" onclick="pickRandomRewatch()">🎲 pick a random rewatch</button>
+                            </div>
+                        </div>
+                        <div id="fav-toast" class="fav-toast" role="status" aria-live="polite">
+                            <span id="fav-toast-text">✨ tonight's rewatch: ...</span>
+                            <button type="button" class="win-btn" onclick="hideFavToast()">ok</button>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Window 1: Screen & Stage -->
                 <section class="retro-window">
                     <div class="window-titlebar">
@@ -107,7 +234,7 @@
                     </div>
                     <div class="window-body">
                         
-                        <div class="fav-section">
+                        <div class="fav-section" data-category="tv-live">
                             <h4>📺 television (live-action)</h4>
                             <div class="tag-cloud">
                                 <span class="media-tag">4 o'clock club</span>
@@ -178,7 +305,7 @@
                             </div>
                         </div>
 
-                        <div class="fav-section">
+                        <div class="fav-section" data-category="movies-live">
                             <h4>🍿 movies (live-action)</h4>
                             <div class="tag-cloud">
                                 <span class="media-tag">10 things i hate about you</span>
@@ -257,7 +384,7 @@
                     </div>
                     <div class="window-body">
                         
-                        <div class="fav-section">
+                        <div class="fav-section" data-category="tv-anim">
                             <h4>🖍️ television (animated)</h4>
                             <div class="tag-cloud">
                                 <span class="media-tag">6teen</span>
@@ -300,7 +427,7 @@
                             </div>
                         </div>
 
-                        <div class="fav-section">
+                        <div class="fav-section" data-category="anime">
                             <h4>🌸 anime</h4>
                             <div class="tag-cloud">
                                 <span class="media-tag">a silent voice</span>
@@ -323,7 +450,7 @@
                             </div>
                         </div>
 
-                        <div class="fav-section">
+                        <div class="fav-section" data-category="movies-anim">
                             <h4>🍿 movies (animated)</h4>
                             <div class="tag-cloud">
                                 <span class="media-tag">a monster in paris</span>
@@ -353,7 +480,7 @@
                             </div>
                         </div>
 
-                        <div class="fav-section">
+                        <div class="fav-section" data-category="books-games">
                             <h4>📚 books, comics & games</h4>
                             <div class="tag-cloud">
                                 <span class="media-tag">13 treasures trilogy</span>
@@ -404,7 +531,7 @@
                         <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
                     </div>
                     <div class="window-body">
-                        <div class="fav-section">
+                        <div class="fav-section" data-category="music">
                             <h4>🎵 heavy rotation & musicals</h4>
                             <div class="tag-cloud">
                                 <span class="media-tag">13: the musical</span>
@@ -440,7 +567,7 @@
         </div>
 
         <footer class="taskbar">
-            <button class="start-btn" onclick="window.location.href='index.html'">⭐ start</button>
+            <button class="start-btn">⭐ start</button>
             <div class="task-pill">dictatordebby / favourites</div>
             <div class="taskbar-right">
                 <span class="audio-icon" title="sound">🔊</span>
@@ -451,5 +578,89 @@
     </div>
 
     <script src="app.js"></script>
+    <script>
+        const searchInput = document.getElementById('fav-search-input');
+        const categorySelect = document.getElementById('fav-category-select');
+        const countBadge = document.getElementById('fav-count-badge');
+        const allSections = Array.from(document.querySelectorAll('.fav-section'));
+        const allTags = Array.from(document.querySelectorAll('.media-tag'));
+
+        function filterFavourites() {
+            const query = searchInput.value.trim().toLowerCase();
+            const cat = categorySelect.value;
+            let visibleCount = 0;
+
+            allSections.forEach(sec => {
+                const secCat = sec.getAttribute('data-category');
+                const catMatches = (cat === 'all' || secCat === cat);
+                let secVisibleTags = 0;
+
+                sec.querySelectorAll('.media-tag').forEach(tag => {
+                    tag.classList.remove('spotlight-pick');
+                    const text = tag.textContent.toLowerCase();
+                    const matchesQuery = !query || text.includes(query);
+
+                    if (catMatches && matchesQuery) {
+                        tag.classList.remove('filter-hidden');
+                        tag.classList.toggle('filter-match', query.length > 0);
+                        secVisibleTags++;
+                        visibleCount++;
+                    } else {
+                        tag.classList.add('filter-hidden');
+                        tag.classList.remove('filter-match');
+                    }
+                });
+
+                sec.style.display = secVisibleTags > 0 ? 'block' : 'none';
+            });
+
+            countBadge.textContent = (query || cat !== 'all')
+                ? `${visibleCount} / ${allTags.length} matching`
+                : `${allTags.length} favourites logged`;
+        }
+
+        let favToastTimer = null;
+        function showFavToast(msg) {
+            const toast = document.getElementById('fav-toast');
+            document.getElementById('fav-toast-text').textContent = msg;
+            toast.classList.add('show');
+            if (favToastTimer) clearTimeout(favToastTimer);
+            favToastTimer = setTimeout(hideFavToast, 5500);
+        }
+
+        function hideFavToast() {
+            document.getElementById('fav-toast').classList.remove('show');
+        }
+
+        function pickRandomRewatch() {
+            const visibleTags = allTags.filter(t => !t.classList.contains('filter-hidden'));
+            const pool = visibleTags.length > 0 ? visibleTags : allTags;
+
+            allTags.forEach(t => t.classList.remove('spotlight-pick'));
+
+            const chosen = pool[Math.floor(Math.random() * pool.length)];
+            if (!chosen) return;
+
+            chosen.classList.add('spotlight-pick');
+            chosen.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            const sectionTitle = chosen.closest('.fav-section')?.querySelector('h4')?.textContent || 'favourites';
+            showFavToast(`🎲 tonight's rewatch / pick: "${chosen.textContent}" (${sectionTitle})`);
+        }
+
+        /* Allow clicking any tag to show it in the banner too */
+        allTags.forEach(tag => {
+            tag.addEventListener('click', () => {
+                allTags.forEach(t => t.classList.remove('spotlight-pick'));
+                tag.classList.add('spotlight-pick');
+                const sectionTitle = tag.closest('.fav-section')?.querySelector('h4')?.textContent || 'favourites';
+                showFavToast(`💖 selected: "${tag.textContent}" (${sectionTitle})`);
+            });
+        });
+
+        searchInput.addEventListener('input', filterFavourites);
+        categorySelect.addEventListener('change', filterFavourites);
+        filterFavourites();
+    </script>
 </body>
 </html>

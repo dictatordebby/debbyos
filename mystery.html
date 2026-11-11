@@ -419,9 +419,9 @@
                 <a href="index.html" class="nav-item">🏠 home</a>
                 <a href="games.html" class="nav-item active">🎮 games</a>
                 <a href="https://www.youtube.com/@dictatordebby" target="_blank" class="nav-item">🎬 videos</a>
-                <a href="index.html" class="nav-item">⭐ about me</a>
+                <a href="about.html" class="nav-item">⭐ about me</a>
                 <a href="favourites.html" class="nav-item">💖 favourites</a>
-                <a href="index.html" class="nav-item">💌 guestbook</a>
+                <a href="guestbook.html" class="nav-item">💌 guestbook</a>
                 <a href="settings.html" class="nav-item">⚙️ settings</a>
             </nav>
 
@@ -432,6 +432,7 @@
                         <span class="win-title" id="node-title">★ case 001: l'ombre</span>
                         <div class="win-controls">
                             <button class="win-ctrl-btn" onclick="resetGamePrompt()" title="restart game">↻</button>
+                            <span>_</span><span>□</span><span>×</span>
                         </div>
                     </div>
                     <div class="window-body">
@@ -471,7 +472,7 @@
                     <div class="window-titlebar">
                         <span class="win-title">📂 case files</span>
                         <div class="win-controls">
-                            <button class="win-ctrl-btn" onclick="toggleDossier()" title="minimize or expand dossier">_</button>
+                            <span>_</span><span>□</span><span>×</span>
                         </div>
                     </div>
                     <div class="journal-tabs">
@@ -485,7 +486,7 @@
         </div>
 
         <footer class="taskbar">
-            <button class="start-btn" onclick="window.location.href='index.html'">⭐ start</button>
+            <button class="start-btn">⭐ start</button>
             <div class="task-pill">dictatordebby / games / mystery</div>
             <div class="taskbar-right">
                 <span class="audio-icon" title="retro terminal mode">🔊</span>
@@ -495,6 +496,7 @@
         </footer>
     </div>
 
+    <script src="app.js"></script>
     <script>
         const SAVE_VERSION = "2.3";
         const MAX_NERVES = 6;
@@ -664,7 +666,7 @@
             gameState.visitedNodes = [];
             gameState.nerves = MAX_NERVES;
             gameState.currentNode = keepSameKiller ? "murder_scene" : "intro_arrival";
-            gameState.playerNotes = ""; // Fixed: Scratchpad resets properly!
+            gameState.playerNotes = "";
             gameState.endingData = { title: "", narrative: "", reportHTML: "" };
 
             if (!keepSameKiller || !previousKiller) {
@@ -1169,7 +1171,7 @@
                     {
                         text: `1. inspect table 1 & harrington's wine glass ${hasEvidence('clue_table') ? '✓' : ''}`,
                         next: "loc_table",
-                        type: hasEvidence('clue_table') ? "nav" : "evidence", // Restored visual styling!
+                        type: hasEvidence('clue_table') ? "nav" : "evidence",
                         tag: hasEvidence('clue_table') ? "searched" : "crime scene"
                     },
                     {
@@ -1284,7 +1286,6 @@
                 location: "private coat check",
                 sub: "combination rejected · -1 nerve",
                 icon: "❌",
-                // Fixed: Moved nerve drain out of action so every wrong attempt properly drains nerve!
                 getText: () => "a sharp red light flashes on the briefcase lock. incorrect combination! that bruised your confidence (-1 nerve). inspect the clues and try again.",
                 getChoices: () => [
                     { 
@@ -1499,7 +1500,6 @@
                     const s = getSuspect(id);
                     const killer = getKillerObj();
                     s.confrontedAlibi = true;
-                    // Restored Red Herring Logic: Checks intersection of corridorGroup & itemTrait so shared pairs (Julian/Vic, Clara/Elena) both get flagged if either is killer!
                     const oppClue = getCaseClueData("clue_opportunity");
                     const traceClue = getCaseClueData("clue_trace");
                     const matchesCorridor = oppClue.suspectIds.includes(s.id);
@@ -1826,7 +1826,7 @@
                 const label = document.createElement("p");
                 label.style.fontSize = "11px";
                 label.style.color = "#d8a0c2";
-                label.textContent = "detective's scratchpad (saved via main save button):"; // Fixed label accuracy!
+                label.textContent = "detective's scratchpad (saved via main save button):";
 
                 const textarea = document.createElement("textarea");
                 textarea.className = "notes-area";
@@ -1849,10 +1849,6 @@
         }
         function hideToast() {
             document.getElementById("toast-banner").classList.remove("show");
-        }
-
-        function toggleDossier() {
-            document.getElementById("dossier-section").classList.toggle("collapsed");
         }
 
         function saveGame() {
@@ -1891,15 +1887,6 @@
                 showToast("🔄 new case initialized.");
             }
         }
-
-        function updateClock() {
-            const now = new Date();
-            const hours = String(now.getHours()).padStart(2, "0");
-            const mins = String(now.getMinutes()).padStart(2, "0");
-            document.getElementById("live-clock").textContent = `${hours}:${mins}`;
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
 
         initNewCase(false);
         renderGame();

@@ -58,7 +58,19 @@ body {
     transition: background-color 0.35s ease, color 0.35s ease;
 }
 
-.theme-switch { flex-shrink: 0; }
+.theme-switch {
+    flex-shrink: 0;
+    cursor: pointer;
+    user-select: none;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    transition: 0.15s ease;
+}
+.theme-switch:hover {
+    border-color: var(--pastel-pink);
+    background: var(--plum-bg);
+}
 
 /* main os wrapper */
 .os-container {
@@ -70,6 +82,7 @@ body {
     flex-direction: column;
     border-radius: 0 0 8px 8px;
     overflow: hidden;
+    position: relative;
     transition: border-color 0.35s ease;
 }
 
@@ -132,6 +145,7 @@ body {
     grid-template-columns: 1fr;
     gap: 15px;
     min-width: 0;
+    align-content: start;
 }
 
 @media(min-width: 768px) {
@@ -149,6 +163,18 @@ body {
     transition: background-color 0.35s ease, border-color 0.35s ease;
 }
 
+.retro-window.minimized > :not(.window-titlebar) {
+    display: none !important;
+}
+
+.retro-window.maximized {
+    grid-column: 1 / -1 !important;
+}
+
+.retro-window.closed-win {
+    display: none !important;
+}
+
 .window-titlebar {
     background: var(--pastel-pink);
     color: var(--dark-plum);
@@ -158,10 +184,29 @@ body {
     align-items: center;
     font-weight: bold;
     font-size: 12px;
+    user-select: none;
     transition: background-color 0.35s ease, color 0.35s ease;
 }
 
-.win-controls span { margin-left: 6px; cursor: pointer; }
+.win-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.win-controls span, .win-ctrl-btn {
+    margin-left: 2px;
+    cursor: pointer;
+    padding: 0 5px;
+    border-radius: 3px;
+    display: inline-block;
+    line-height: 1.2;
+}
+
+.win-controls span:hover, .win-ctrl-btn:hover {
+    background: var(--dark-plum);
+    color: var(--pastel-pink);
+}
 
 .window-body {
     padding: 12px;
@@ -295,6 +340,7 @@ body {
     justify-content: space-between;
     gap: 8px;
     flex-wrap: wrap;
+    position: relative;
     transition: background-color 0.35s ease, border-color 0.35s ease;
 }
 
@@ -310,6 +356,10 @@ body {
     text-decoration: none;
 }
 
+.start-btn:hover, .start-btn.active {
+    background: #fff;
+}
+
 .taskbar-right {
     display: flex;
     gap: 12px;
@@ -320,6 +370,163 @@ body {
 
 .audio-icon { user-select: none; }
 .audio-icon:hover { filter: brightness(1.25); }
+
+/* =========================================
+   START MENU POPUP & FLOATING SCREENSAVER
+   ========================================= */
+.start-menu-popup {
+    position: fixed;
+    bottom: 48px;
+    left: 16px;
+    width: 255px;
+    background: var(--plum-window);
+    border: 2px solid var(--pastel-pink);
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.75);
+    z-index: 9999;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    animation: startPop 0.16s ease-out;
+}
+
+.start-menu-popup.open {
+    display: flex;
+}
+
+@keyframes startPop {
+    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.start-menu-header {
+    background: var(--pastel-pink);
+    color: var(--dark-plum);
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.start-menu-body {
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.start-menu-link {
+    background: var(--plum-bg);
+    color: var(--text-pink);
+    border: 1px solid transparent;
+    padding: 7px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    text-decoration: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    text-align: left;
+    font-weight: bold;
+}
+
+.start-menu-link:hover {
+    background: var(--pastel-pink);
+    color: var(--dark-plum);
+}
+
+.start-menu-divider {
+    height: 1px;
+    background: rgba(242, 198, 222, 0.2);
+    margin: 4px 0;
+}
+
+.start-menu-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+}
+
+.start-Quick-btn {
+    background: var(--dark-plum);
+    color: var(--pastel-pink);
+    border: 1px solid var(--pastel-pink);
+    padding: 6px 6px;
+    font-size: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    text-align: center;
+}
+
+.start-Quick-btn:hover {
+    background: var(--pastel-pink);
+    color: var(--dark-plum);
+}
+
+/* Screensaver Overlay */
+.screensaver-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 3, 8, 0.92);
+    backdrop-filter: blur(3px);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.screensaver-overlay.active {
+    display: flex;
+}
+
+.screensaver-center-box {
+    text-align: center;
+    padding: 20px 28px;
+    background: var(--plum-window);
+    border: 2px solid var(--pastel-pink);
+    border-radius: 8px;
+    z-index: 2;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+}
+
+.screensaver-center-box h2 {
+    font-size: 16px;
+    color: var(--pastel-pink);
+    margin-bottom: 6px;
+}
+
+.screensaver-center-box p {
+    font-size: 11px;
+    color: var(--text-pink);
+    opacity: 0.85;
+}
+
+.floating-star {
+    position: absolute;
+    font-size: 24px;
+    user-select: none;
+    pointer-events: none;
+    animation: floatStar linear infinite;
+}
+
+@keyframes floatStar {
+    0% {
+        transform: translateY(105vh) rotate(0deg) scale(0.8);
+        opacity: 0;
+    }
+    15% { opacity: 0.9; }
+    85% { opacity: 0.9; }
+    100% {
+        transform: translateY(-15vh) rotate(360deg) scale(1.15);
+        opacity: 0;
+    }
+}
 
 /* global smoothness */
 a, button, .nav-item, .win-btn, .game-btn, .choice-btn, .setting-btn, .mini-btn, .tab-pill, .start-btn {
@@ -355,7 +562,8 @@ a, button, .nav-item, .win-btn, .game-btn, .choice-btn, .setting-btn, .mini-btn,
     }
 
     .theme-switch {
-        display: none;
+        font-size: 10px;
+        padding: 2px 6px;
     }
 
     .main-banner {
@@ -413,6 +621,13 @@ a, button, .nav-item, .win-btn, .game-btn, .choice-btn, .setting-btn, .mini-btn,
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+
+    .start-menu-popup {
+        left: 8px;
+        bottom: 44px;
+        width: calc(100vw - 16px);
+        max-width: 280px;
     }
 }
 
