@@ -120,6 +120,7 @@
             border: 1px solid #5a2033;
             border-radius: 3px;
             overflow: hidden;
+            cursor: pointer;
         }
         .cd-progress-bar {
             height: 100%;
@@ -242,12 +243,12 @@
                             <div class="cd-top-row">
                                 <div class="cd-disc" id="cd-disc">💿</div>
                                 <div class="cd-track-info">
-                                    <div class="cd-status-label" id="cd-status-label">paused · chiptune synth</div>
-                                    <div class="cd-track-title" id="cd-track-title">into you (8-bit mix)</div>
+                                    <div class="cd-status-label" id="cd-status-label">paused · track 1/3</div>
+                                    <div class="cd-track-title" id="cd-track-title">the way (feat. mac miller)</div>
                                     <div class="cd-track-artist" id="cd-track-artist">ariana grande</div>
                                 </div>
                             </div>
-                            <div class="cd-progress-wrap">
+                            <div class="cd-progress-wrap" id="cd-progress-wrap" title="click to seek">
                                 <div class="cd-progress-bar" id="cd-progress-bar"></div>
                             </div>
                             <div class="cd-controls-row">
@@ -256,7 +257,7 @@
                                     <button type="button" class="cd-btn" id="cd-play-btn" onclick="cdTogglePlay()">▶ play</button>
                                     <button type="button" class="cd-btn" onclick="cdNextTrack()" title="next track">⏭</button>
                                 </div>
-                                <a href="https://www.youtube.com/results?search_query=ariana+grande+into+you" target="_blank" class="cd-yt-link" id="cd-yt-link">listen on yt ↗</a>
+                                <a href="https://www.youtube.com/results?search_query=ariana+grande+the+way" target="_blank" class="cd-yt-link" id="cd-yt-link">listen on yt ↗</a>
                             </div>
                         </div>
                     </div>
@@ -335,6 +336,7 @@
 
                     const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
                     const container = document.getElementById('latest-video-container');
+                    if (!container) return;
 
                     container.innerHTML = `
                         <a href="${latestVideo.link}" target="_blank" class="video-thumbnail-card" style="background-image: url('${thumbnailUrl}');">
@@ -349,119 +351,6 @@
         }
 
         fetchLatestYouTubeVideo();
-
-        /* ---------- RETRO CD PLAYER (CHIPTUNE ROTATION) ---------- */
-        const CD_TRACKS = [
-            {
-                title: "into you (chiptune mix)",
-                artist: "ariana grande",
-                query: "ariana+grande+into+you",
-                notes: [440, 523.25, 659.25, 587.33, 523.25, 440, 392, 440]
-            },
-            {
-                title: "can't get you out of my head",
-                artist: "kylie minogue",
-                query: "kylie+minogue+cant+get+you+out+of+my+head",
-                notes: [329.63, 392, 440, 392, 329.63, 293.66, 329.63, 261.63]
-            },
-            {
-                title: "candy store (broadway synth)",
-                artist: "heathers: the musical",
-                query: "heathers+musical+candy+store",
-                notes: [523.25, 659.25, 783.99, 659.25, 587.33, 698.46, 659.25, 523.25]
-            },
-            {
-                title: "defying gravity (emerald 8-bit)",
-                artist: "wicked (musical)",
-                query: "wicked+defying+gravity",
-                notes: [293.66, 440, 415.30, 440, 493.88, 587.33, 523.25, 440]
-            },
-            {
-                title: "say my name (retro club)",
-                artist: "destiny's child",
-                query: "destinys+child+say+my+name",
-                notes: [392, 440, 493.88, 392, 349.23, 329.63, 293.66, 329.63]
-            },
-            {
-                title: "goin' back to hogwarts",
-                artist: "a very potter musical",
-                query: "a+very+potter+musical+going+back+to+hogwarts",
-                notes: [261.63, 329.63, 392, 523.25, 493.88, 392, 440, 523.25]
-            }
-        ];
-
-        let currentTrackIdx = 0;
-        let isPlayingCD = false;
-        let noteStep = 0;
-        let cdInterval = null;
-
-        function renderCDTrack() {
-            const track = CD_TRACKS[currentTrackIdx];
-            document.getElementById('cd-track-title').textContent = track.title;
-            document.getElementById('cd-track-artist').textContent = track.artist;
-            document.getElementById('cd-yt-link').href = `https://www.youtube.com/results?search_query=${track.query}`;
-            document.getElementById('cd-status-label').textContent = isPlayingCD
-                ? `now playing (${currentTrackIdx + 1}/${CD_TRACKS.length})`
-                : `paused · track ${currentTrackIdx + 1}/${CD_TRACKS.length}`;
-            document.getElementById('cd-play-btn').textContent = isPlayingCD ? '⏸ pause' : '▶ play';
-            document.getElementById('cd-disc').classList.toggle('spinning', isPlayingCD);
-            if (!isPlayingCD) {
-                document.getElementById('cd-progress-bar').style.width = '0%';
-            }
-        }
-
-        function playChiptuneStep() {
-            const track = CD_TRACKS[currentTrackIdx];
-            const freq = track.notes[noteStep % track.notes.length];
-            const progress = (((noteStep % track.notes.length) + 1) / track.notes.length) * 100;
-            document.getElementById('cd-progress-bar').style.width = `${progress}%`;
-
-            if (window.debbyOS_isAudioEnabled && window.debbyOS_isAudioEnabled()) {
-                const ctx = window.debbyOS_getAudioContext ? window.debbyOS_getAudioContext() : null;
-                if (ctx) {
-                    try {
-                        const osc = ctx.createOscillator();
-                        const gain = ctx.createGain();
-                        osc.type = 'triangle';
-                        osc.frequency.setValueAtTime(freq, ctx.currentTime);
-                        gain.gain.setValueAtTime(0.035, ctx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22);
-                        osc.connect(gain);
-                        gain.connect(ctx.destination);
-                        osc.start();
-                        osc.stop(ctx.currentTime + 0.22);
-                    } catch (e) {}
-                }
-            }
-            noteStep++;
-        }
-
-        function cdTogglePlay() {
-            isPlayingCD = !isPlayingCD;
-            if (isPlayingCD) {
-                noteStep = 0;
-                playChiptuneStep();
-                cdInterval = setInterval(playChiptuneStep, 260);
-            } else {
-                clearInterval(cdInterval);
-                cdInterval = null;
-            }
-            renderCDTrack();
-        }
-
-        function cdNextTrack() {
-            currentTrackIdx = (currentTrackIdx + 1) % CD_TRACKS.length;
-            noteStep = 0;
-            renderCDTrack();
-        }
-
-        function cdPrevTrack() {
-            currentTrackIdx = (currentTrackIdx - 1 + CD_TRACKS.length) % CD_TRACKS.length;
-            noteStep = 0;
-            renderCDTrack();
-        }
-
-        renderCDTrack();
     </script>
 </body>
 </html>
