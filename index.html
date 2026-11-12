@@ -94,11 +94,14 @@
             flex: 1;
             min-width: 0;
         }
-        .cd-status-label {
+        .cd-status-row {
             font-size: 9px;
             color: #d8a0c2;
             letter-spacing: 0.5px;
             margin-bottom: 2px;
+            display: flex;
+            justify-content: space-between;
+            gap: 6px;
         }
         .cd-track-title {
             font-size: 12px;
@@ -112,21 +115,25 @@
             font-size: 11px;
             color: var(--text-pink);
             margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .cd-progress-wrap {
             width: 100%;
-            height: 6px;
+            height: 8px;
             background: #12060d;
             border: 1px solid #5a2033;
-            border-radius: 3px;
+            border-radius: 4px;
             overflow: hidden;
             cursor: pointer;
+            position: relative;
         }
         .cd-progress-bar {
             height: 100%;
             width: 0%;
             background: var(--pastel-pink);
-            transition: width 0.2s linear;
+            transition: width 0.12s linear;
         }
         .cd-controls-row {
             display: flex;
@@ -153,10 +160,15 @@
             background: var(--pastel-pink);
             color: var(--dark-plum);
         }
-        .cd-yt-link {
-            font-size: 10px;
+        .cd-track-select {
+            background: var(--plum-window);
             color: var(--pastel-pink);
-            text-decoration: underline;
+            border: 1px solid var(--pastel-pink);
+            border-radius: 3px;
+            padding: 4px 6px;
+            font-size: 10px;
+            max-width: 155px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -229,10 +241,15 @@
                             <h3>murder mystery</h3>
                             <a href="mystery.html" class="win-btn">play →</a>
                         </div>
+                        <div class="game-card">
+                            <span class="game-icon">🪐</span>
+                            <h3>star sweeper</h3>
+                            <a href="star-sweeper.html" class="win-btn">play →</a>
+                        </div>
                     </div>
                 </section>
 
-                <!-- Retro CD Player / Current Rotation Window -->
+                <!-- Retro CD Player / Current Rotation Window (Synced globally via app.js) -->
                 <section class="retro-window">
                     <div class="window-titlebar">
                         <span class="win-title">★ cd player / current rotation</span>
@@ -243,9 +260,12 @@
                             <div class="cd-top-row">
                                 <div class="cd-disc" id="cd-disc">💿</div>
                                 <div class="cd-track-info">
-                                    <div class="cd-status-label" id="cd-status-label">paused · track 1/3</div>
-                                    <div class="cd-track-title" id="cd-track-title">the way (feat. mac miller)</div>
-                                    <div class="cd-track-artist" id="cd-track-artist">ariana grande</div>
+                                    <div class="cd-status-row">
+                                        <span id="cd-status-text">paused · track 1/8</span>
+                                        <span id="cd-time-display">0:00 / 0:00</span>
+                                    </div>
+                                    <div class="cd-track-title" id="cd-track-title">didn't we almost have it all</div>
+                                    <div class="cd-track-artist" id="cd-track-artist">whitney houston</div>
                                 </div>
                             </div>
                             <div class="cd-progress-wrap" id="cd-progress-wrap" title="click to seek">
@@ -257,7 +277,7 @@
                                     <button type="button" class="cd-btn" id="cd-play-btn" onclick="cdTogglePlay()">▶ play</button>
                                     <button type="button" class="cd-btn" onclick="cdNextTrack()" title="next track">⏭</button>
                                 </div>
-                                <a href="https://www.youtube.com/results?search_query=ariana+grande+the+way" target="_blank" class="cd-yt-link" id="cd-yt-link">listen on yt ↗</a>
+                                <select id="cd-track-select" class="cd-track-select" aria-label="select track" onchange="cdJumpToTrack(this.value)"></select>
                             </div>
                         </div>
                     </div>
@@ -336,7 +356,6 @@
 
                     const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
                     const container = document.getElementById('latest-video-container');
-                    if (!container) return;
 
                     container.innerHTML = `
                         <a href="${latestVideo.link}" target="_blank" class="video-thumbnail-card" style="background-image: url('${thumbnailUrl}');">

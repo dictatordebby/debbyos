@@ -1,11 +1,12 @@
 /* debbyOS shared behaviors
    - boot-up splash screen (#edbedc + spinning ⚝ + audio/boot.mp3 + skip button, once per session)
+   - global persistent CD player (8 MP3s across all pages via sessionStorage + taskbar mini-player)
    - theme persistence (plum / matcha / midnight) + clickable .theme-switch cycler
    - audio toggle with subtle WebAudio "mechanical" clicks
    - live taskbar clock
    - global visitor counter (Supabase REST + localStorage fallback)
    - interactive window controls (_ minimize, □ maximize, × close/restore)
-   - ⭐ start menu popup (quick links, random page/game, theme/audio toggles, sleep screensaver, replay boot)
+   - ⭐ start menu popup
 */
 (function () {
     'use strict';
@@ -17,7 +18,62 @@
     const LOCAL_COUNT_KEY = 'debbyOS_local_visitor_count';
     const BOOT_AUDIO_SRC = 'audio/boot.mp3';
 
-    /* Supabase credentials (shared with guestbook) */
+    /* Bumped key to v2 so any old 1/3 session cache is wiped automatically */
+    const CD_STATE_KEY = 'debbyOS_cd_state_v2';
+
+    /* Global 8-Track Playlist */
+    const CD_TRACKS = [
+        {
+            title: "didn't we almost have it all",
+            artist: "whitney houston",
+            src: "audio/didnt-we-almost-have-it-all.mp3",
+            query: "whitney+houston+didnt+we+almost+have+it+all"
+        },
+        {
+            title: "ryuusei",
+            artist: "tia",
+            src: "audio/ryuusei.mp3",
+            query: "tia+ryuusei"
+        },
+        {
+            title: "two worlds collide",
+            artist: "demi lovato",
+            src: "audio/two-worlds-collide.mp3",
+            query: "demi+lovato+two+worlds+collide"
+        },
+        {
+            title: "tuning",
+            artist: "yseult",
+            src: "audio/tuning.mp3",
+            query: "yseult+tuning"
+        },
+        {
+            title: "still into you",
+            artist: "paramore",
+            src: "audio/still-into-you.mp3",
+            query: "paramore+still+into+you"
+        },
+        {
+            title: "the way",
+            artist: "ariana grande",
+            src: "audio/the-way.mp3",
+            query: "ariana+grande+the+way"
+        },
+        {
+            title: "try sleeping with a broken heart",
+            artist: "alicia keys",
+            src: "audio/try-sleeping.mp3",
+            query: "alicia+keys+try+sleeping+with+a+broken+heart"
+        },
+        {
+            title: "always come back to your love",
+            artist: "samantha mumba",
+            src: "audio/always-come-back.mp3",
+            query: "samantha+mumba+always+come+back+to+your+love"
+        }
+    ];
+
+    /* Supabase credentials */
     const SUPABASE_URL = 'https://bjnjdnggpryurvnhjckb.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_GrUnMeA9ANc18PXoV5jTWA_ASvhbwOC';
 
@@ -33,6 +89,7 @@
         'games.html',
         'connections.html',
         'mystery.html',
+        'star-sweeper.html',
         'about.html',
         'favourites.html',
         'guestbook.html',
@@ -74,7 +131,7 @@
         window.debbyOS_setTheme(THEME_ORDER[nextIndex]);
     };
 
-    /* ---------- AUDIO ---------- */
+    /* ---------- AUDIO & MECHANICAL CLICKS ---------- */
     let audioEnabled = localStorage.getItem(AUDIO_KEY) !== 'off';
     let audioCtx = null;
 
@@ -110,7 +167,7 @@
             gain.connect(ctx.destination);
             osc.start();
             osc.stop(ctx.currentTime + dur);
-        } catch (e) { /* ignore */ }
+        } catch (e) {}
     }
 
     function updateAudioIcons() {
@@ -124,6 +181,10 @@
         if (startAudioBtn) {
             startAudioBtn.textContent = audioEnabled ? '🔊 sound: on' : '🔇 sound: off';
         }
+
+        if (cdAudio) {
+            cdAudio.muted = !audioEnabled;
+        }
     }
 
     window.debbyOS_setAudio = function (on) {
@@ -135,13 +196,255 @@
 
     window.debbyOS_isAudioEnabled = function () { return audioEnabled; };
 
-    /* click sounds (delegated so it works on dynamically created buttons too) */
     document.addEventListener('click', function (e) {
         const target = e.target.closest(
             'button, a.nav-item, a.win-btn, .game-btn, .choice-btn, .setting-btn, .mini-btn, .tab-pill, .start-btn, .task-pill, .clear-link, .submit-btn, .start-menu-link, .start-Quick-btn, .theme-switch, .win-controls span'
         );
         if (target) beep(880, 0.05, 0.018);
     }, true);
+
+    /* ---------- GLOBAL PERSISTENT CD PLAYER ---------- */
+    let currentTrackIdx = 0;
+    const cdAudio = new Audio();
+    cdAudio.preload = 'metadata';
+    cdAudio.muted = !audioEnabled;
+
+    function formatSec(sec) {
+        if (!sec || isNaN(sec)) return '0:00';
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
+        return `${m}:${String(s).padStart(2, '0')}`;
+    }
+
+    function isCDActuallyPlaying() {
+        return Boolean(cdAudio && !cdAudio.paused && !cdAudio.ended && cdAudio.readyState > 0);
+    }
+
+    function saveCDState() {
+        try {
+            sessionStorage.setItem(CD_STATE_KEY, JSON.stringify({
+                idx: currentTrackIdx,
+                time: cdAudio.currentTime || 0,
+                playing: isCDActuallyPlaying()
+            }));
+        } catch (e) {}
+    }
+
+    function loadCDState() {
+        try {
+            const raw = sessionStorage.getItem(CD_STATE_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function renderAllCDWidgets() {
+        const track = CD_TRACKS[currentTrackIdx] || CD_TRACKS[0];
+        const playing = isCDActuallyPlaying();
+        const statusString = playing
+            ? `now playing · track ${currentTrackIdx + 1}/${CD_TRACKS.length}`
+            : `paused · track ${currentTrackIdx + 1}/${CD_TRACKS.length}`;
+
+        /* Update Home Page Widget (supports both old & new HTML IDs!) */
+        const titleEl = document.getElementById('cd-track-title');
+        const artistEl = document.getElementById('cd-track-artist');
+        const statusTextEl = document.getElementById('cd-status-text');
+        const statusLabelEl = document.getElementById('cd-status-label');
+        const playBtn = document.getElementById('cd-play-btn');
+        const discEl = document.getElementById('cd-disc');
+        const selectEl = document.getElementById('cd-track-select');
+        const ytLinkEl = document.getElementById('cd-yt-link');
+
+        if (titleEl) titleEl.textContent = track.title;
+        if (artistEl) artistEl.textContent = track.artist;
+
+        /* Update whichever status ID exists in index.html */
+        if (statusTextEl) {
+            statusTextEl.textContent = statusString;
+        } else if (statusLabelEl) {
+            statusLabelEl.textContent = statusString;
+        }
+
+        if (playBtn) playBtn.textContent = playing ? '⏸ pause' : '▶ play';
+        if (discEl) discEl.classList.toggle('spinning', playing);
+        if (selectEl && selectEl.value !== String(currentTrackIdx)) {
+            selectEl.value = String(currentTrackIdx);
+        }
+        if (ytLinkEl) {
+            ytLinkEl.href = `https://www.youtube.com/results?search_query=${track.query}`;
+        }
+
+        /* Update Taskbar Mini-Player on Every Page */
+        const miniDisc = document.getElementById('taskbar-cd-disc');
+        const miniTitle = document.getElementById('taskbar-cd-title');
+        const miniPlayBtn = document.getElementById('taskbar-cd-play');
+
+        if (miniDisc) miniDisc.classList.toggle('spinning', playing);
+        if (miniTitle) miniTitle.textContent = `${track.title} · ${track.artist}`;
+        if (miniPlayBtn) miniPlayBtn.textContent = playing ? '⏸' : '▶';
+    }
+
+    function loadCDTrack(idx, shouldPlay, startTime) {
+        currentTrackIdx = ((idx % CD_TRACKS.length) + CD_TRACKS.length) % CD_TRACKS.length;
+        const track = CD_TRACKS[currentTrackIdx];
+        cdAudio.src = track.src;
+
+        const progressBar = document.getElementById('cd-progress-bar');
+        const timeDisplay = document.getElementById('cd-time-display');
+        if (progressBar) progressBar.style.width = '0%';
+        if (timeDisplay) timeDisplay.textContent = '0:00 / 0:00';
+
+        if (startTime && startTime > 0) {
+            const setTimeOnce = () => {
+                if (startTime < (cdAudio.duration || Infinity)) {
+                    cdAudio.currentTime = startTime;
+                }
+                cdAudio.removeEventListener('loadedmetadata', setTimeOnce);
+            };
+            cdAudio.addEventListener('loadedmetadata', setTimeOnce);
+        }
+
+        renderAllCDWidgets();
+
+        if (shouldPlay) {
+            cdAudio.play().then(() => {
+                renderAllCDWidgets();
+                saveCDState();
+            }).catch(() => {
+                renderAllCDWidgets();
+                const resumeOnFirstClick = () => {
+                    cdAudio.play().then(() => {
+                        renderAllCDWidgets();
+                        saveCDState();
+                    }).catch(() => {});
+                    document.removeEventListener('click', resumeOnFirstClick);
+                };
+                document.addEventListener('click', resumeOnFirstClick, { once: true });
+            });
+        } else {
+            renderAllCDWidgets();
+            saveCDState();
+        }
+    }
+
+    window.cdTogglePlay = function () {
+        if (!cdAudio.src) {
+            loadCDTrack(currentTrackIdx, true, 0);
+            return;
+        }
+        if (cdAudio.paused) {
+            cdAudio.play().then(() => {
+                renderAllCDWidgets();
+                saveCDState();
+            }).catch(() => {
+                const statusTextEl = document.getElementById('cd-status-text') || document.getElementById('cd-status-label');
+                if (statusTextEl) statusTextEl.textContent = `missing: ${CD_TRACKS[currentTrackIdx].src}`;
+            });
+        } else {
+            cdAudio.pause();
+            renderAllCDWidgets();
+            saveCDState();
+        }
+    };
+
+    window.cdNextTrack = function () {
+        const wasPlaying = isCDActuallyPlaying();
+        loadCDTrack(currentTrackIdx + 1, wasPlaying, 0);
+    };
+
+    window.cdPrevTrack = function () {
+        const wasPlaying = isCDActuallyPlaying();
+        loadCDTrack(currentTrackIdx - 1, wasPlaying, 0);
+    };
+
+    window.cdJumpToTrack = function (val) {
+        loadCDTrack(parseInt(val, 10) || 0, true, 0);
+    };
+
+    function initGlobalCDPlayer() {
+        /* Inject Taskbar Mini-Player on every page */
+        const taskbarRight = document.querySelector('.taskbar-right');
+        if (taskbarRight && !document.getElementById('taskbar-cd-mini')) {
+            const mini = document.createElement('div');
+            mini.id = 'taskbar-cd-mini';
+            mini.className = 'taskbar-cd-mini';
+            mini.innerHTML = `
+                <span class="taskbar-cd-disc" id="taskbar-cd-disc">💿</span>
+                <span class="taskbar-cd-title" id="taskbar-cd-title">loading...</span>
+                <button type="button" class="taskbar-cd-btn" onclick="cdPrevTrack()" title="previous song">⏮</button>
+                <button type="button" class="taskbar-cd-btn" id="taskbar-cd-play" onclick="cdTogglePlay()" title="play / pause">▶</button>
+                <button type="button" class="taskbar-cd-btn" onclick="cdNextTrack()" title="next song">⏭</button>
+            `;
+            taskbarRight.insertBefore(mini, taskbarRight.firstChild);
+        }
+
+        /* Populate track dropdown on index.html if present */
+        const selectEl = document.getElementById('cd-track-select');
+        if (selectEl) {
+            selectEl.innerHTML = '';
+            CD_TRACKS.forEach((t, idx) => {
+                const opt = document.createElement('option');
+                opt.value = String(idx);
+                opt.textContent = `${idx + 1}. ${t.title}`;
+                selectEl.appendChild(opt);
+            });
+        }
+
+        /* Wire progress bar click-to-seek on index.html */
+        const progressWrap = document.getElementById('cd-progress-wrap') || document.querySelector('.cd-progress-wrap');
+        if (progressWrap) {
+            progressWrap.style.cursor = 'pointer';
+            progressWrap.addEventListener('click', (e) => {
+                if (!cdAudio.duration || isNaN(cdAudio.duration)) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                cdAudio.currentTime = ratio * cdAudio.duration;
+                saveCDState();
+            });
+        }
+
+        /* Always sync UI when audio state changes */
+        cdAudio.addEventListener('play', renderAllCDWidgets);
+        cdAudio.addEventListener('playing', renderAllCDWidgets);
+        cdAudio.addEventListener('pause', renderAllCDWidgets);
+
+        cdAudio.addEventListener('timeupdate', () => {
+            if (cdAudio.duration && !isNaN(cdAudio.duration)) {
+                const pct = (cdAudio.currentTime / cdAudio.duration) * 100;
+                const bar = document.getElementById('cd-progress-bar');
+                const timeEl = document.getElementById('cd-time-display');
+                if (bar) bar.style.width = `${pct}%`;
+                if (timeEl) {
+                    timeEl.textContent = `${formatSec(cdAudio.currentTime)} / ${formatSec(cdAudio.duration)}`;
+                }
+            }
+            saveCDState();
+        });
+
+        cdAudio.addEventListener('loadedmetadata', () => {
+            const timeEl = document.getElementById('cd-time-display');
+            if (timeEl) {
+                timeEl.textContent = `${formatSec(cdAudio.currentTime)} / ${formatSec(cdAudio.duration)}`;
+            }
+            renderAllCDWidgets();
+        });
+
+        cdAudio.addEventListener('ended', () => {
+            loadCDTrack(currentTrackIdx + 1, true, 0);
+        });
+
+        window.addEventListener('beforeunload', saveCDState);
+        window.addEventListener('pagehide', saveCDState);
+
+        /* Restore state from previous page if available */
+        const saved = loadCDState();
+        if (saved && typeof saved.idx === 'number') {
+            loadCDTrack(saved.idx, Boolean(saved.playing), Number(saved.time) || 0);
+        } else {
+            loadCDTrack(0, false, 0);
+        }
+    }
 
     /* ---------- BOOT-UP SPLASH SCREEN (#edbedc + ⚝ + boot.mp3) ---------- */
     function showBootSplash(forceShow) {
@@ -150,7 +453,6 @@
         }
         sessionStorage.setItem(SESSION_BOOT_KEY, 'true');
 
-        /* Remove any existing splash overlay if re-triggered */
         const existing = document.getElementById('debbyos-boot-splash');
         if (existing) existing.remove();
 
@@ -199,7 +501,6 @@
             }, 480);
         }
 
-        /* Sync progress bar with the song duration (or 12s fallback) */
         const startTime = Date.now();
         const fallbackDurationMs = 12800;
 
@@ -221,16 +522,12 @@
         }, 100);
 
         bootAudio.addEventListener('ended', closeBootSplash);
-
-        /* Safety fallback so it always finishes even if audio is blocked or missing */
         fallbackTimer = setTimeout(closeBootSplash, 13500);
 
-        /* Try playing the boot song immediately */
         if (audioEnabled) {
             const playPromise = bootAudio.play();
             if (playPromise !== undefined) {
                 playPromise.catch(() => {
-                    /* Browser blocked unmuted autoplay until first click */
                     if (soundBtn) soundBtn.style.display = 'inline-block';
                     if (statusEl) statusEl.textContent = 'click anywhere to hear boot music or press skip ✨';
 
@@ -287,7 +584,7 @@
                 pill.id = 'taskbar-visitor-pill';
                 pill.className = 'visitor-pill';
                 pill.title = 'total site visitors';
-                taskbarRight.insertBefore(pill, taskbarRight.firstChild);
+                taskbarRight.appendChild(pill);
             }
             pill.textContent = `👁️ ${formatted}`;
         }
@@ -348,9 +645,7 @@
                         }
                     }
                 }
-            } catch (err) {
-                /* Fall back silently to local counter */
-            }
+            } catch (err) {}
         }
 
         let localCount = parseInt(localStorage.getItem(LOCAL_COUNT_KEY) || '104', 10);
@@ -468,13 +763,14 @@
         popup.innerHTML = `
             <div class="start-menu-header">
                 <span>⭐️ debbyos system menu</span>
-                <span>v2.6</span>
+                <span>v2.8</span>
             </div>
             <div class="start-menu-body">
                 <a href="index.html" class="start-menu-link"><span>🏠 home desktop</span><span>→</span></a>
                 <a href="games.html" class="start-menu-link"><span>🎮 games lobby</span><span>→</span></a>
                 <a href="connections.html" class="start-menu-link"><span>🧩 connections</span><span>→</span></a>
                 <a href="mystery.html" class="start-menu-link"><span>🕵️‍♀️ eight at l'ombre</span><span>→</span></a>
+                <a href="star-sweeper.html" class="start-menu-link"><span>🪐 star sweeper</span><span>→</span></a>
                 <a href="favourites.html" class="start-menu-link"><span>💖 favourites cloud</span><span>→</span></a>
                 <a href="guestbook.html" class="start-menu-link"><span>💌 guestbook</span><span>→</span></a>
                 <a href="about.html" class="start-menu-link"><span>⭐ about debby</span><span>→</span></a>
@@ -551,6 +847,7 @@
     function init() {
         showBootSplash(false);
         initStartMenu();
+        initGlobalCDPlayer();
         applyTheme();
         updateAudioIcons();
         updateClock();
