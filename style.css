@@ -25,6 +25,114 @@ body {
     transition: background-color 0.35s ease, color 0.35s ease;
 }
 
+/* =========================================
+   BOOT-UP SPLASH SCREEN (#edbedc + ⚝)
+   ========================================= */
+.boot-splash-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: #edbedc;
+    color: #4a1525;
+    z-index: 20000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    user-select: none;
+    transition: opacity 0.45s ease, visibility 0.45s ease;
+}
+
+.boot-splash-overlay.fade-out {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.boot-star-icon {
+    font-size: 84px;
+    line-height: 1;
+    color: #4a1525;
+    margin-bottom: 18px;
+    display: inline-block;
+    animation: bootStarSpin 2.6s linear infinite;
+    text-shadow: 0 4px 14px rgba(74, 21, 37, 0.2);
+}
+
+@keyframes bootStarSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.boot-title {
+    font-size: 20px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    color: #4a1525;
+    margin-bottom: 6px;
+}
+
+.boot-status-text {
+    font-size: 12px;
+    color: #5a2033;
+    margin-bottom: 16px;
+    min-height: 18px;
+    text-align: center;
+}
+
+.boot-progress-track {
+    width: 240px;
+    max-width: 80vw;
+    height: 10px;
+    background: rgba(74, 21, 37, 0.15);
+    border: 2px solid #4a1525;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 18px;
+}
+
+.boot-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: #4a1525;
+    transition: width 0.12s linear;
+}
+
+.boot-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.boot-btn {
+    background: #4a1525;
+    color: #edbedc;
+    border: 2px solid #4a1525;
+    padding: 8px 18px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.15s ease;
+}
+
+.boot-btn:hover {
+    background: #2e1422;
+    color: #fce8f3;
+    transform: translateY(-1px);
+}
+
+.boot-btn.secondary {
+    background: transparent;
+    color: #4a1525;
+}
+
+.boot-btn.secondary:hover {
+    background: rgba(74, 21, 37, 0.12);
+}
+
 /* fake browser top bar */
 .browser-bar {
     background: var(--dark-plum);

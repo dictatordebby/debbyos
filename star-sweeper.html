@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dictatordebby.com/games/star-sweeper</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .sweeper-layout {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-width: 0;
+        }
+        @media(min-width: 920px) {
+            .sweeper-layout {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+        }
+        .main-sweeper-window {
+            flex: 1.8;
+            width: 100%;
+        }
+        .side-sweeper-windows {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+
+        /* Top HUD Bar */
+        .sweeper-hud {
+            background: var(--plum-bg);
+            border: 1px solid var(--pastel-pink);
+            border-radius: 4px;
+            padding: 8px 12px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+        .hud-stat {
+            background: var(--dark-plum);
+            color: var(--pastel-pink);
+            border: 1px solid var(--pastel-pink);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            min-width: 92px;
+            text-align: center;
+        }
+        .face-reset-btn {
+            background: var(--pastel-pink);
+            color: var(--dark-plum);
+            border: 2px solid var(--dark-plum);
+            padding: 4px 14px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            line-height: 1.2;
+        }
+        .face-reset-btn:hover {
+            background: #fff;
+            transform: scale(1.05);
+        }
+
+        /* Mode & Difficulty Controls */
+        .sweeper-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        .diff-group, .mode-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .sweep-pill-btn {
+            background: var(--plum-bg);
+            color: var(--text-pink);
+            border: 1px solid var(--pastel-pink);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .sweep-pill-btn:hover,
+        .sweep-pill-btn.active {
+            background: var(--pastel-pink);
+            color: var(--dark-plum);
+        }
+
+        /* Toast notification */
+        .toast-banner {
+            background: var(--dark-plum);
+            color: var(--text-pink);
+            border: 1px solid var(--pastel-pink);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .toast-banner.show {
+            display: flex;
+        }
+
+        /* Board Container */
+        .board-wrapper {
+            background: var(--plum-bg);
+            border: 2px solid var(--pastel-pink);
+            border-radius: 4px;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            overflow-x: auto;
+        }
+        .sweeper-grid {
+            display: grid;
+            gap: 4px;
+            width: 100%;
+            max-width: 460px;
+            margin: 0 auto;
+            user-select: none;
+        }
+
+        /* Individual Cells — 100% Theme-Aware */
+        .sweep-cell {
+            aspect-ratio: 1 / 1;
+            width: 100%;
+            min-height: 30px;
+            background: var(--pastel-pink);
+            color: var(--dark-plum);
+            border: 1px solid var(--dark-plum);
+            border-radius: 3px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+            transition: transform 0.08s ease, background-color 0.15s ease, color 0.15s ease;
+        }
+        .sweep-cell:hover:not(.revealed) {
+            filter: brightness(1.08);
+            transform: translateY(-1px);
+        }
+        .sweep-cell.revealed {
+            background: var(--plum-window);
+            color: var(--text-pink);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            box-shadow: none;
+            cursor: default;
+        }
+        .sweep-cell.flagged {
+            background: var(--dark-plum);
+            color: var(--pastel-pink);
+            border: 1px solid var(--pastel-pink);
+        }
+        .sweep-cell.mine-hit {
+            background: #ff5f56 !important;
+            color: #1e0c15 !important;
+            border-color: #fff !important;
+        }
+        .sweep-cell.mine-revealed {
+            background: var(--dark-plum);
+            color: var(--pastel-pink);
+        }
+
+        /* Number colors that stay legible across Plum, Matcha, and Midnight */
+        .sweep-cell[data-num="1"] { color: var(--pastel-pink); }
+        .sweep-cell[data-num="2"] { color: #7ee787; }
+        .sweep-cell[data-num="3"] { color: #ffbd2e; }
+        .sweep-cell[data-num="4"] { color: #d2a8ff; }
+        .sweep-cell[data-num="5"] { color: #ff7b72; }
+        .sweep-cell[data-num="6"] { color: #79c0ff; }
+        .sweep-cell[data-num="7"] { color: #ffa657; }
+        .sweep-cell[data-num="8"] { color: #ffffff; }
+
+        .empty-star {
+            font-size: 11px;
+            opacity: 0.45;
+        }
+
+        .stats-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 11px;
+        }
+        .stat-row {
+            background: var(--plum-bg);
+            border: 1px solid var(--pastel-pink);
+            padding: 8px 10px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .stat-row strong {
+            color: var(--pastel-pink);
+        }
+
+        @media (max-width: 520px) {
+            .sweeper-grid {
+                gap: 3px;
+            }
+            .sweep-cell {
+                min-height: 25px;
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="browser-bar">
+        <div class="window-dots">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+        </div>
+        <div class="url-box">https://dictatordebby.com/games/star-sweeper</div>
+        <div class="theme-switch">pastel star 🌸</div>
+    </div>
+
+    <div class="os-container">
+        <header class="main-banner">
+            <div class="banner-decor left">🪐</div>
+            <div class="banner-center">
+                <div class="star-logo">⭐️</div>
+                <h1>dictator debby</h1>
+                <p class="banner-sub">star sweeper · cosmic minesweeper</p>
+            </div>
+            <div class="banner-decor right">🎀</div>
+        </header>
+
+        <div class="workspace">
+            <nav class="sidebar">
+                <a href="index.html" class="nav-item">🏠 home</a>
+                <a href="games.html" class="nav-item active">🎮 games</a>
+                <a href="https://www.youtube.com/@dictatordebby" target="_blank" class="nav-item">🎬 videos</a>
+                <a href="about.html" class="nav-item">⭐ about me</a>
+                <a href="favourites.html" class="nav-item">💖 favourites</a>
+                <a href="guestbook.html" class="nav-item">💌 guestbook</a>
+                <a href="settings.html" class="nav-item">⚙️ settings</a>
+            </nav>
+
+            <div class="sweeper-layout">
+                <!-- Main Game Window -->
+                <section class="retro-window main-sweeper-window">
+                    <div class="window-titlebar">
+                        <span class="win-title">★ star sweeper.exe</span>
+                        <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                    </div>
+                    <div class="window-body">
+                        <div class="sweeper-hud">
+                            <div class="hud-stat" id="mines-left-display" title="black holes remaining">🪐 010</div>
+                            <button type="button" class="face-reset-btn" id="face-btn" onclick="initSweeper()" title="new game">🌸</button>
+                            <div class="hud-stat" id="timer-display" title="elapsed seconds">⏱️ 000s</div>
+                        </div>
+
+                        <div class="sweeper-toolbar">
+                            <div class="diff-group">
+                                <button type="button" class="sweep-pill-btn active" id="diff-easy" onclick="setDifficulty('easy')">8×8 (10 🪐)</button>
+                                <button type="button" class="sweep-pill-btn" id="diff-medium" onclick="setDifficulty('medium')">10×10 (16 🪐)</button>
+                                <button type="button" class="sweep-pill-btn" id="diff-hard" onclick="setDifficulty('hard')">12×12 (26 🪐)</button>
+                            </div>
+                            <div class="mode-group">
+                                <button type="button" class="sweep-pill-btn active" id="mode-reveal-btn" onclick="setClickMode('reveal')">⭐️ uncover</button>
+                                <button type="button" class="sweep-pill-btn" id="mode-flag-btn" onclick="setClickMode('flag')">🪐 flag mode</button>
+                            </div>
+                        </div>
+
+                        <div id="sweeper-toast" class="toast-banner" role="status" aria-live="polite">
+                            <span id="sweeper-toast-text">✨ sector cleared!</span>
+                            <button type="button" class="win-btn" onclick="initSweeper()">play again</button>
+                        </div>
+
+                        <div class="board-wrapper">
+                            <div class="sweeper-grid" id="sweeper-grid" role="grid" aria-label="star sweeper board"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Side Windows: Instructions & Best Times -->
+                <div class="side-sweeper-windows">
+                    <section class="retro-window">
+                        <div class="window-titlebar">
+                            <span class="win-title">★ how to play</span>
+                            <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                        </div>
+                        <div class="window-body" style="font-size: 11px; line-height: 1.55;">
+                            <p>• <strong>goal:</strong> uncover every safe star tile (⭐️) without clicking on a hidden black hole (🪐).</p>
+                            <p>• <strong>numbers:</strong> tell you how many black holes are touching that tile (including diagonals).</p>
+                            <p>• <strong>flagging:</strong> right-click any tile (or toggle <strong>🪐 flag mode</strong> on mobile/touch) to mark a suspected black hole.</p>
+                            <p>• <strong>safe first click:</strong> your first click of every match is guaranteed to be safe!</p>
+                        </div>
+                    </section>
+
+                    <section class="retro-window">
+                        <div class="window-titlebar">
+                            <span class="win-title">★ best clear times</span>
+                            <div class="win-controls"><span>_</span><span>□</span><span>×</span></div>
+                        </div>
+                        <div class="window-body">
+                            <div class="stats-list">
+                                <div class="stat-row">
+                                    <span>8×8 cosmic sector</span>
+                                    <strong id="best-easy">--</strong>
+                                </div>
+                                <div class="stat-row">
+                                    <span>10×10 nebula grid</span>
+                                    <strong id="best-medium">--</strong>
+                                </div>
+                                <div class="stat-row">
+                                    <span>12×12 deep void</span>
+                                    <strong id="best-hard">--</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <footer class="taskbar">
+            <button class="start-btn">⭐ start</button>
+            <div class="task-pill">dictatordebby / games / star-sweeper</div>
+            <div class="taskbar-right">
+                <span class="audio-icon" title="sound">🔊</span>
+                <span class="wifi-icon">📶</span>
+                <span class="clock" id="live-clock">00:00</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        const DIFFICULTIES = {
+            easy: { rows: 8, cols: 8, mines: 10 },
+            medium: { rows: 10, cols: 10, mines: 16 },
+            hard: { rows: 12, cols: 12, mines: 26 }
+        };
+
+        const BEST_TIME_KEY = 'debbyOS_starsweeper_best_v1';
+
+        let currentDiff = 'easy';
+        let clickMode = 'reveal'; // 'reveal' or 'flag'
+        let board = [];
+        let firstClick = true;
+        let gameOver = false;
+        let flagsPlaced = 0;
+        let revealedCount = 0;
+        let timerSeconds = 0;
+        let timerInterval = null;
+
+        function playTone(freq, dur) {
+            if (window.debbyOS_isAudioEnabled && !window.debbyOS_isAudioEnabled()) return;
+            const ctx = window.debbyOS_getAudioContext ? window.debbyOS_getAudioContext() : null;
+            if (!ctx) return;
+            try {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.03, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + dur);
+            } catch (e) {}
+        }
+
+        function setDifficulty(diff) {
+            currentDiff = diff;
+            ['easy', 'medium', 'hard'].forEach(d => {
+                document.getElementById(`diff-${d}`).classList.toggle('active', d === diff);
+            });
+            initSweeper();
+        }
+
+        function setClickMode(mode) {
+            clickMode = mode;
+            document.getElementById('mode-reveal-btn').classList.toggle('active', mode === 'reveal');
+            document.getElementById('mode-flag-btn').classList.toggle('active', mode === 'flag');
+        }
+
+        function initSweeper() {
+            const cfg = DIFFICULTIES[currentDiff];
+            board = [];
+            firstClick = true;
+            gameOver = false;
+            flagsPlaced = 0;
+            revealedCount = 0;
+            stopTimer();
+            timerSeconds = 0;
+            updateHUD();
+
+            document.getElementById('face-btn').textContent = '🌸';
+            document.getElementById('sweeper-toast').classList.remove('show');
+
+            for (let r = 0; r < cfg.rows; r++) {
+                const row = [];
+                for (let c = 0; c < cfg.cols; c++) {
+                    row.push({
+                        r, c,
+                        isMine: false,
+                        revealed: false,
+                        flagged: false,
+                        adj: 0
+                    });
+                }
+                board.push(row);
+            }
+
+            renderBoard();
+            renderBestTimes();
+        }
+
+        function placeMinesAvoiding(safeR, safeC) {
+            const cfg = DIFFICULTIES[currentDiff];
+            let placed = 0;
+
+            while (placed < cfg.mines) {
+                const r = Math.floor(Math.random() * cfg.rows);
+                const c = Math.floor(Math.random() * cfg.cols);
+
+                /* Keep the first clicked tile and its immediate neighbors black-hole free */
+                if (Math.abs(r - safeR) <= 1 && Math.abs(c - safeC) <= 1) continue;
+                if (board[r][c].isMine) continue;
+
+                board[r][c].isMine = true;
+                placed++;
+            }
+
+            for (let r = 0; r < cfg.rows; r++) {
+                for (let c = 0; c < cfg.cols; c++) {
+                    if (board[r][c].isMine) continue;
+                    let count = 0;
+                    forEachNeighbor(r, c, (nr, nc) => {
+                        if (board[nr][nc].isMine) count++;
+                    });
+                    board[r][c].adj = count;
+                }
+            }
+        }
+
+        function forEachNeighbor(r, c, fn) {
+            const cfg = DIFFICULTIES[currentDiff];
+            for (let dr = -1; dr <= 1; dr++) {
+                for (let dc = -1; dc <= 1; dc++) {
+                    if (dr === 0 && dc === 0) continue;
+                    const nr = r + dr;
+                    const nc = c + dc;
+                    if (nr >= 0 && nr < cfg.rows && nc >= 0 && nc < cfg.cols) {
+                        fn(nr, nc);
+                    }
+                }
+            }
+        }
+
+        function startTimer() {
+            if (timerInterval) return;
+            timerInterval = setInterval(() => {
+                timerSeconds = Math.min(999, timerSeconds + 1);
+                updateHUD();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function updateHUD() {
+            const cfg = DIFFICULTIES[currentDiff];
+            const remaining = Math.max(0, cfg.mines - flagsPlaced);
+            document.getElementById('mines-left-display').textContent = `🪐 ${String(remaining).padStart(3, '0')}`;
+            document.getElementById('timer-display').textContent = `⏱️ ${String(timerSeconds).padStart(3, '0')}s`;
+        }
+
+        function handleCellClick(r, c) {
+            if (gameOver) return;
+            const cell = board[r][c];
+
+            if (clickMode === 'flag') {
+                toggleFlag(r, c);
+                return;
+            }
+
+            if (cell.flagged || cell.revealed) return;
+
+            if (firstClick) {
+                firstClick = false;
+                placeMinesAvoiding(r, c);
+                startTimer();
+            }
+
+            if (cell.isMine) {
+                triggerGameOver(false, r, c);
+                return;
+            }
+
+            floodReveal(r, c);
+            playTone(660, 0.08);
+            renderBoard();
+            checkWinCondition();
+        }
+
+        function toggleFlag(r, c) {
+            if (gameOver) return;
+            const cell = board[r][c];
+            if (cell.revealed) return;
+
+            cell.flagged = !cell.flagged;
+            flagsPlaced += cell.flagged ? 1 : -1;
+            playTone(cell.flagged ? 520 : 420, 0.07);
+            updateHUD();
+            renderBoard();
+        }
+
+        function floodReveal(startR, startC) {
+            const stack = [[startR, startC]];
+
+            while (stack.length > 0) {
+                const [r, c] = stack.pop();
+                const cell = board[r][c];
+
+                if (cell.revealed || cell.flagged || cell.isMine) continue;
+                cell.revealed = true;
+                revealedCount++;
+
+                if (cell.adj === 0) {
+                    forEachNeighbor(r, c, (nr, nc) => {
+                        if (!board[nr][nc].revealed && !board[nr][nc].isMine) {
+                            stack.push([nr, nc]);
+                        }
+                    });
+                }
+            }
+        }
+
+        function checkWinCondition() {
+            const cfg = DIFFICULTIES[currentDiff];
+            const safeTotal = cfg.rows * cfg.cols - cfg.mines;
+            if (revealedCount >= safeTotal) {
+                triggerGameOver(true, -1, -1);
+            }
+        }
+
+        function triggerGameOver(won, hitR, hitC) {
+            gameOver = true;
+            stopTimer();
+            const cfg = DIFFICULTIES[currentDiff];
+
+            for (let r = 0; r < cfg.rows; r++) {
+                for (let c = 0; c < cfg.cols; c++) {
+                    const cell = board[r][c];
+                    if (cell.isMine) {
+                        if (won) {
+                            cell.flagged = true;
+                        } else {
+                            cell.revealed = true;
+                            if (r === hitR && c === hitC) {
+                                cell.hit = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (won) {
+                flagsPlaced = cfg.mines;
+                updateHUD();
+                document.getElementById('face-btn').textContent = '⭐️';
+                saveBestTime(currentDiff, timerSeconds);
+                showSweeperToast(`🎉 cosmic sector cleared in ${timerSeconds}s! all stars uncovered!`);
+                playTone(880, 0.18);
+            } else {
+                document.getElementById('face-btn').textContent = '💫';
+                showSweeperToast('💥 pulled into a black hole (🪐)! click play again to retry.');
+                playTone(180, 0.25);
+            }
+
+            renderBoard();
+            renderBestTimes();
+        }
+
+        function showSweeperToast(msg) {
+            const banner = document.getElementById('sweeper-toast');
+            document.getElementById('sweeper-toast-text').textContent = msg;
+            banner.classList.add('show');
+        }
+
+        function renderBoard() {
+            const cfg = DIFFICULTIES[currentDiff];
+            const gridEl = document.getElementById('sweeper-grid');
+            gridEl.style.gridTemplateColumns = `repeat(${cfg.cols}, 1fr)`;
+            gridEl.innerHTML = '';
+
+            for (let r = 0; r < cfg.rows; r++) {
+                for (let c = 0; c < cfg.cols; c++) {
+                    const cell = board[r][c];
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'sweep-cell';
+
+                    if (cell.revealed) {
+                        btn.classList.add('revealed');
+                        if (cell.isMine) {
+                            btn.textContent = '🪐';
+                            btn.classList.add(cell.hit ? 'mine-hit' : 'mine-revealed');
+                        } else if (cell.adj > 0) {
+                            btn.textContent = cell.adj;
+                            btn.setAttribute('data-num', String(cell.adj));
+                        } else {
+                            btn.innerHTML = '<span class="empty-star">⭐️</span>';
+                        }
+                    } else if (cell.flagged) {
+                        btn.classList.add('flagged');
+                        btn.textContent = '🪐';
+                    }
+
+                    btn.addEventListener('click', () => handleCellClick(r, c));
+                    btn.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        toggleFlag(r, c);
+                    });
+
+                    gridEl.appendChild(btn);
+                }
+            }
+        }
+
+        function loadBestTimes() {
+            try {
+                const raw = localStorage.getItem(BEST_TIME_KEY);
+                return raw ? JSON.parse(raw) : {};
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function saveBestTime(diff, sec) {
+            const times = loadBestTimes();
+            if (!times[diff] || sec < times[diff]) {
+                times[diff] = sec;
+                localStorage.setItem(BEST_TIME_KEY, JSON.stringify(times));
+            }
+        }
+
+        function renderBestTimes() {
+            const times = loadBestTimes();
+            ['easy', 'medium', 'hard'].forEach(d => {
+                const el = document.getElementById(`best-${d}`);
+                if (el) {
+                    el.textContent = times[d] !== undefined ? `${times[d]}s ⭐️` : '--';
+                }
+            });
+        }
+
+        initSweeper();
+    </script>
+</body>
+</html>
