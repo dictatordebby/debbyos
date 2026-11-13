@@ -1,6 +1,7 @@
 /* debbyOS shared behaviors
    - boot-up splash screen (#edbedc + spinning ⚝ + audio/boot.mp3 + skip button, once per session)
-   - global persistent CD player (8 MP3s across all pages via sessionStorage + taskbar mini-player)
+   - seamless SPA navigation engine (keeps music playing uninterrupted on iOS/Android mobile & desktop!)
+   - global persistent CD player (8 MP3s across all pages + taskbar mini-player)
    - theme persistence (plum / matcha / midnight) + clickable .theme-switch cycler
    - audio toggle with subtle WebAudio "mechanical" clicks
    - live taskbar clock
@@ -17,8 +18,6 @@
     const SESSION_BOOT_KEY = 'debbyOS_boot_shown';
     const LOCAL_COUNT_KEY = 'debbyOS_local_visitor_count';
     const BOOT_AUDIO_SRC = 'audio/boot.mp3';
-
-    /* Bumped key to v2 so any old 1/3 session cache is wiped automatically */
     const CD_STATE_KEY = 'debbyOS_cd_state_v2';
 
     /* Global 8-Track Playlist */
@@ -95,6 +94,8 @@
         'guestbook.html',
         'settings.html'
     ];
+
+    let cachedVisitorCount = null;
 
     /* ---------- THEME ---------- */
     function getCurrentTheme() {
@@ -208,6 +209,7 @@
     const cdAudio = new Audio();
     cdAudio.preload = 'metadata';
     cdAudio.muted = !audioEnabled;
+    cdAudio.setAttribute('playsinline', '');
 
     function formatSec(sec) {
         if (!sec || isNaN(sec)) return '0:00';
@@ -246,7 +248,6 @@
             ? `now playing · track ${currentTrackIdx + 1}/${CD_TRACKS.length}`
             : `paused · track ${currentTrackIdx + 1}/${CD_TRACKS.length}`;
 
-        /* Update Home Page Widget (supports both old & new HTML IDs!) */
         const titleEl = document.getElementById('cd-track-title');
         const artistEl = document.getElementById('cd-track-artist');
         const statusTextEl = document.getElementById('cd-status-text');
@@ -259,7 +260,6 @@
         if (titleEl) titleEl.textContent = track.title;
         if (artistEl) artistEl.textContent = track.artist;
 
-        /* Update whichever status ID exists in index.html */
         if (statusTextEl) {
             statusTextEl.textContent = statusString;
         } else if (statusLabelEl) {
@@ -275,7 +275,6 @@
             ytLinkEl.href = `https://www.youtube.com/results?search_query=${track.query}`;
         }
 
-        /* Update Taskbar Mini-Player on Every Page */
         const miniDisc = document.getElementById('taskbar-cd-disc');
         const miniTitle = document.getElementById('taskbar-cd-title');
         const miniPlayBtn = document.getElementById('taskbar-cd-play');
@@ -313,14 +312,17 @@
                 saveCDState();
             }).catch(() => {
                 renderAllCDWidgets();
-                const resumeOnFirstClick = () => {
+                /* Fallback for mobile if user manually refreshes browser */
+                const resumeOnTouchOrClick = () => {
                     cdAudio.play().then(() => {
                         renderAllCDWidgets();
                         saveCDState();
                     }).catch(() => {});
-                    document.removeEventListener('click', resumeOnFirstClick);
+                    document.removeEventListener('touchstart', resumeOnTouchOrClick);
+                    document.removeEventListener('click', resumeOnTouchOrClick);
                 };
-                document.addEventListener('click', resumeOnFirstClick, { once: true });
+                document.addEventListener('touchstart', resumeOnTouchOrClick, { once: true, passive: true });
+                document.addEventListener('click', resumeOnTouchOrClick, { once: true });
             });
         } else {
             renderAllCDWidgets();
@@ -362,8 +364,8 @@
         loadCDTrack(parseInt(val, 10) || 0, true, 0);
     };
 
-    function initGlobalCDPlayer() {
-        /* Inject Taskbar Mini-Player on every page */
+    /* Bind DOM elements inside the current page (called on initial load AND after SPA page swaps) */
+    function bindPageCDWidgets() {
         const taskbarRight = document.querySelector('.taskbar-right');
         if (taskbarRight && !document.getElementById('taskbar-cd-mini')) {
             const mini = document.createElement('div');
@@ -379,7 +381,6 @@
             taskbarRight.insertBefore(mini, taskbarRight.firstChild);
         }
 
-        /* Populate track dropdown on index.html if present */
         const selectEl = document.getElementById('cd-track-select');
         if (selectEl) {
             selectEl.innerHTML = '';
@@ -389,11 +390,12 @@
                 opt.textContent = `${idx + 1}. ${t.title}`;
                 selectEl.appendChild(opt);
             });
+            selectEl.value = String(currentTrackIdx);
         }
 
-        /* Wire progress bar click-to-seek on index.html */
         const progressWrap = document.getElementById('cd-progress-wrap') || document.querySelector('.cd-progress-wrap');
-        if (progressWrap) {
+        if (progressWrap && !progressWrap.dataset.bound) {
+            progressWrap.dataset.bound = 'true';
             progressWrap.style.cursor = 'pointer';
             progressWrap.addEventListener('click', (e) => {
                 if (!cdAudio.duration || isNaN(cdAudio.duration)) return;
@@ -404,7 +406,20 @@
             });
         }
 
-        /* Always sync UI when audio state changes */
+        if (cdAudio.duration && !isNaN(cdAudio.duration)) {
+            const pct = (cdAudio.currentTime / cdAudio.duration) * 100;
+            const bar = document.getElementById('cd-progress-bar');
+            const timeEl = document.getElementById('cd-time-display');
+            if (bar) bar.style.width = `${pct}%`;
+            if (timeEl) {
+                timeEl.textContent = `${formatSec(cdAudio.currentTime)} / ${formatSec(cdAudio.duration)}`;
+            }
+        }
+
+        renderAllCDWidgets();
+    }
+
+    function initGlobalCDPlayer() {
         cdAudio.addEventListener('play', renderAllCDWidgets);
         cdAudio.addEventListener('playing', renderAllCDWidgets);
         cdAudio.addEventListener('pause', renderAllCDWidgets);
@@ -437,13 +452,126 @@
         window.addEventListener('beforeunload', saveCDState);
         window.addEventListener('pagehide', saveCDState);
 
-        /* Restore state from previous page if available */
+        bindPageCDWidgets();
+
         const saved = loadCDState();
         if (saved && typeof saved.idx === 'number') {
             loadCDTrack(saved.idx, Boolean(saved.playing), Number(saved.time) || 0);
         } else {
             loadCDTrack(0, false, 0);
         }
+    }
+
+    /* ---------- SEAMLESS SPA ROUTER (KEEPS MOBILE AUDIO PLAYING!) ---------- */
+    let isNavigating = false;
+
+    async function seamlessNavigate(targetUrl, pushState = true) {
+        if (isNavigating) return;
+        isNavigating = true;
+
+        try {
+            const res = await fetch(targetUrl);
+            if (!res.ok) {
+                window.location.href = targetUrl;
+                return;
+            }
+            const htmlText = await res.text();
+            const parser = new DOMParser();
+            const newDoc = parser.parseFromString(htmlText, 'text/html');
+
+            const newOsContainer = newDoc.querySelector('.os-container');
+            const currentOsContainer = document.querySelector('.os-container');
+            if (!newOsContainer || !currentOsContainer) {
+                window.location.href = targetUrl;
+                return;
+            }
+
+            /* 1. Update Document Title & Fake Browser URL Bar */
+            document.title = newDoc.title || document.title;
+            const newUrlBox = newDoc.querySelector('.url-box');
+            const currentUrlBox = document.querySelector('.url-box');
+            if (newUrlBox && currentUrlBox) {
+                currentUrlBox.textContent = newUrlBox.textContent;
+            }
+
+            /* 2. Swap Page-Specific Inline <style> Tags */
+            document.querySelectorAll('head style').forEach(s => s.remove());
+            newDoc.querySelectorAll('head style').forEach(styleEl => {
+                document.head.appendChild(styleEl.cloneNode(true));
+            });
+
+            /* 3. Swap the .os-container HTML */
+            currentOsContainer.replaceWith(newOsContainer);
+
+            if (pushState) {
+                history.pushState({ spaUrl: targetUrl }, '', targetUrl);
+            }
+            window.scrollTo(0, 0);
+
+            /* 4. Re-bind shared OS features on the newly swapped DOM */
+            rebindPageBehaviors();
+
+            /* 5. Load any external scripts (like Supabase on guestbook.html) & run inline page scripts */
+            const scripts = Array.from(newDoc.querySelectorAll('script'));
+            for (const oldScript of scripts) {
+                const src = oldScript.getAttribute('src') || '';
+                if (src.includes('app.js')) continue; // Never re-run app.js!
+
+                if (src) {
+                    if (!document.querySelector(`script[src="${src}"]`)) {
+                        await new Promise((resolve) => {
+                            const s = document.createElement('script');
+                            s.src = src;
+                            s.onload = resolve;
+                            s.onerror = resolve;
+                            document.body.appendChild(s);
+                        });
+                    }
+                } else if (oldScript.textContent.trim()) {
+                    try {
+                        /* Wrap in an IIFE so top-level const/let declarations don't collide across page visits */
+                        const runner = document.createElement('script');
+                        runner.textContent = `(function(){\n${oldScript.textContent}\n})();`;
+                        document.body.appendChild(runner);
+                        runner.remove();
+                    } catch (err) {
+                        console.error('page script error:', err);
+                    }
+                }
+            }
+        } catch (err) {
+            window.location.href = targetUrl;
+        } finally {
+            isNavigating = false;
+        }
+    }
+
+    function initSeamlessNavigation() {
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('a[href]');
+            if (!link) return;
+
+            if (link.target === '_blank' || link.hasAttribute('download')) return;
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+            const rawHref = link.getAttribute('href');
+            if (!rawHref || rawHref.startsWith('#') || rawHref.startsWith('mailto:') || rawHref.startsWith('javascript:')) return;
+
+            const resolvedUrl = new URL(link.href, window.location.href);
+            if (resolvedUrl.origin !== window.location.origin) return;
+            if (!resolvedUrl.pathname.endsWith('.html') && resolvedUrl.pathname !== '/') return;
+
+            e.preventDefault();
+            /* Close Start Menu if open */
+            const popup = document.getElementById('debbyos-start-menu');
+            if (popup) popup.classList.remove('open');
+
+            seamlessNavigate(resolvedUrl.href, true);
+        });
+
+        window.addEventListener('popstate', () => {
+            seamlessNavigate(window.location.href, false);
+        });
     }
 
     /* ---------- BOOT-UP SPLASH SCREEN (#edbedc + ⚝ + boot.mp3) ---------- */
@@ -529,7 +657,7 @@
             if (playPromise !== undefined) {
                 playPromise.catch(() => {
                     if (soundBtn) soundBtn.style.display = 'inline-block';
-                    if (statusEl) statusEl.textContent = 'click anywhere to hear boot music or press skip ✨';
+                    if (statusEl) statusEl.textContent = 'tap anywhere to hear boot music or press skip ✨';
 
                     const unlockAudio = (e) => {
                         if (e.target === skipBtn) return;
@@ -574,6 +702,7 @@
 
     /* ---------- VISITOR COUNTER ---------- */
     function renderVisitorCount(count) {
+        cachedVisitorCount = count;
         const formatted = String(Math.max(1, Number(count) || 1)).padStart(6, '0');
 
         const taskbarRight = document.querySelector('.taskbar-right');
@@ -607,6 +736,11 @@
     }
 
     async function updateVisitorCounter() {
+        if (cachedVisitorCount !== null) {
+            renderVisitorCount(cachedVisitorCount);
+            return;
+        }
+
         const alreadyCountedThisSession = sessionStorage.getItem(SESSION_VISIT_KEY) === 'true';
 
         if (SUPABASE_URL && SUPABASE_ANON_KEY) {
@@ -661,7 +795,8 @@
     function initWindowControls() {
         document.querySelectorAll('.retro-window').forEach(win => {
             const controls = win.querySelector('.win-controls');
-            if (!controls) return;
+            if (!controls || controls.dataset.bound) return;
+            controls.dataset.bound = 'true';
 
             controls.querySelectorAll('span').forEach(btn => {
                 const sym = btn.textContent.trim();
@@ -708,7 +843,7 @@
         screensaverEl.innerHTML = `
             <div class="screensaver-center-box">
                 <h2>🌙 debbyos sleep mode</h2>
-                <p>move your mouse or press any key to wake up ✨</p>
+                <p>move your mouse or tap anywhere to wake up ✨</p>
             </div>
         `;
 
@@ -752,116 +887,112 @@
 
     /* ---------- ⭐ START MENU POPUP ---------- */
     function initStartMenu() {
-        const startBtn = document.querySelector('.start-btn');
-        if (!startBtn) return;
-
-        startBtn.removeAttribute('onclick');
-
-        const popup = document.createElement('div');
-        popup.className = 'start-menu-popup';
-        popup.id = 'debbyos-start-menu';
-        popup.innerHTML = `
-            <div class="start-menu-header">
-                <span>⭐️ debbyos system menu</span>
-                <span>v2.8</span>
-            </div>
-            <div class="start-menu-body">
-                <a href="index.html" class="start-menu-link"><span>🏠 home desktop</span><span>→</span></a>
-                <a href="games.html" class="start-menu-link"><span>🎮 games lobby</span><span>→</span></a>
-                <a href="connections.html" class="start-menu-link"><span>🧩 connections</span><span>→</span></a>
-                <a href="mystery.html" class="start-menu-link"><span>🕵️‍♀️ eight at l'ombre</span><span>→</span></a>
-                <a href="star-sweeper.html" class="start-menu-link"><span>🪐 star sweeper</span><span>→</span></a>
-                <a href="favourites.html" class="start-menu-link"><span>💖 favourites cloud</span><span>→</span></a>
-                <a href="guestbook.html" class="start-menu-link"><span>💌 guestbook</span><span>→</span></a>
-                <a href="about.html" class="start-menu-link"><span>⭐ about debby</span><span>→</span></a>
-                <a href="settings.html" class="start-menu-link"><span>⚙️ settings</span><span>→</span></a>
-                <div class="start-menu-divider"></div>
-                <button type="button" class="start-menu-link" id="start-random-btn">
-                    <span>🎲 random page / game</span><span>↗</span>
-                </button>
-                <button type="button" class="start-menu-link" id="start-restore-win-btn">
-                    <span>🪟 restore all windows</span><span>↺</span>
-                </button>
-                <button type="button" class="start-menu-link" id="start-replay-boot-btn">
-                    <span>⚝ replay boot screen</span><span>♪</span>
-                </button>
-                <div class="start-menu-divider"></div>
-                <div class="start-menu-controls">
-                    <button type="button" class="start-Quick-btn" id="start-theme-cycle-btn">🎨 plum</button>
-                    <button type="button" class="start-Quick-btn" id="start-audio-toggle-btn">🔊 sound: on</button>
-                    <button type="button" class="start-Quick-btn" id="start-sleep-btn" style="grid-column: 1 / -1;">🌙 sleep / screensaver</button>
+        let popup = document.getElementById('debbyos-start-menu');
+        if (!popup) {
+            popup = document.createElement('div');
+            popup.className = 'start-menu-popup';
+            popup.id = 'debbyos-start-menu';
+            popup.innerHTML = `
+                <div class="start-menu-header">
+                    <span>⭐️ debbyos system menu</span>
+                    <span>v2.9</span>
                 </div>
-            </div>
-        `;
-        document.body.appendChild(popup);
+                <div class="start-menu-body">
+                    <a href="index.html" class="start-menu-link"><span>🏠 home desktop</span><span>→</span></a>
+                    <a href="games.html" class="start-menu-link"><span>🎮 games lobby</span><span>→</span></a>
+                    <a href="connections.html" class="start-menu-link"><span>🧩 connections</span><span>→</span></a>
+                    <a href="mystery.html" class="start-menu-link"><span>🕵️‍♀️ eight at l'ombre</span><span>→</span></a>
+                    <a href="star-sweeper.html" class="start-menu-link"><span>🪐 star sweeper</span><span>→</span></a>
+                    <a href="favourites.html" class="start-menu-link"><span>💖 favourites cloud</span><span>→</span></a>
+                    <a href="guestbook.html" class="start-menu-link"><span>💌 guestbook</span><span>→</span></a>
+                    <a href="about.html" class="start-menu-link"><span>⭐ about debby</span><span>→</span></a>
+                    <a href="settings.html" class="start-menu-link"><span>⚙️ settings</span><span>→</span></a>
+                    <div class="start-menu-divider"></div>
+                    <button type="button" class="start-menu-link" id="start-random-btn">
+                        <span>🎲 random page / game</span><span>↗</span>
+                    </button>
+                    <button type="button" class="start-menu-link" id="start-restore-win-btn">
+                        <span>🪟 restore all windows</span><span>↺</span>
+                    </button>
+                    <button type="button" class="start-menu-link" id="start-replay-boot-btn">
+                        <span>⚝ replay boot screen</span><span>♪</span>
+                    </button>
+                    <div class="start-menu-divider"></div>
+                    <div class="start-menu-controls">
+                        <button type="button" class="start-Quick-btn" id="start-theme-cycle-btn">🎨 plum</button>
+                        <button type="button" class="start-Quick-btn" id="start-audio-toggle-btn">🔊 sound: on</button>
+                        <button type="button" class="start-Quick-btn" id="start-sleep-btn" style="grid-column: 1 / -1;">🌙 sleep / screensaver</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(popup);
 
-        startBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isOpen = popup.classList.toggle('open');
-            startBtn.classList.toggle('active', isOpen);
-        });
-
-        document.getElementById('start-random-btn').addEventListener('click', () => {
-            const pick = RANDOM_DESTINATIONS[Math.floor(Math.random() * RANDOM_DESTINATIONS.length)];
-            window.location.href = pick;
-        });
-
-        document.getElementById('start-restore-win-btn').addEventListener('click', () => {
-            window.debbyOS_restoreAllWindows();
-            popup.classList.remove('open');
-            startBtn.classList.remove('active');
-        });
-
-        document.getElementById('start-replay-boot-btn').addEventListener('click', () => {
-            popup.classList.remove('open');
-            startBtn.classList.remove('active');
-            window.debbyOS_replayBoot();
-        });
-
-        document.getElementById('start-theme-cycle-btn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            window.debbyOS_cycleTheme();
-        });
-
-        document.getElementById('start-audio-toggle-btn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            window.debbyOS_setAudio(!audioEnabled);
-        });
-
-        document.getElementById('start-sleep-btn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            popup.classList.remove('open');
-            startBtn.classList.remove('active');
-            window.debbyOS_startScreensaver();
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!popup.contains(e.target) && e.target !== startBtn) {
+            document.getElementById('start-random-btn').addEventListener('click', () => {
+                const pick = RANDOM_DESTINATIONS[Math.floor(Math.random() * RANDOM_DESTINATIONS.length)];
                 popup.classList.remove('open');
-                startBtn.classList.remove('active');
-            }
-        });
+                seamlessNavigate(pick, true);
+            });
+
+            document.getElementById('start-restore-win-btn').addEventListener('click', () => {
+                window.debbyOS_restoreAllWindows();
+                popup.classList.remove('open');
+            });
+
+            document.getElementById('start-replay-boot-btn').addEventListener('click', () => {
+                popup.classList.remove('open');
+                window.debbyOS_replayBoot();
+            });
+
+            document.getElementById('start-theme-cycle-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                window.debbyOS_cycleTheme();
+            });
+
+            document.getElementById('start-audio-toggle-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                window.debbyOS_setAudio(!audioEnabled);
+            });
+
+            document.getElementById('start-sleep-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                popup.classList.remove('open');
+                window.debbyOS_startScreensaver();
+            });
+
+            document.addEventListener('click', (e) => {
+                const startBtn = document.querySelector('.start-btn');
+                if (!popup.contains(e.target) && e.target !== startBtn) {
+                    popup.classList.remove('open');
+                    if (startBtn) startBtn.classList.remove('active');
+                }
+            });
+        }
+
+        const startBtn = document.querySelector('.start-btn');
+        if (startBtn && !startBtn.dataset.bound) {
+            startBtn.dataset.bound = 'true';
+            startBtn.removeAttribute('onclick');
+            startBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = popup.classList.toggle('open');
+                startBtn.classList.toggle('active', isOpen);
+            });
+        }
     }
 
-    /* ---------- INIT ---------- */
-    function init() {
-        showBootSplash(false);
+    /* Re-runs whenever the user switches pages via the SPA router */
+    function rebindPageBehaviors() {
         initStartMenu();
-        initGlobalCDPlayer();
+        bindPageCDWidgets();
         applyTheme();
         updateAudioIcons();
         updateClock();
         updateVisitorCounter();
         initWindowControls();
 
-        const themeSwitchEl = document.querySelector('.theme-switch');
-        if (themeSwitchEl) {
-            themeSwitchEl.addEventListener('click', () => {
-                window.debbyOS_cycleTheme();
-            });
-        }
-
         document.querySelectorAll('.audio-icon').forEach(el => {
+            if (el.dataset.bound) return;
+            el.dataset.bound = 'true';
             el.style.cursor = 'pointer';
             el.title = 'click to toggle sound';
             el.addEventListener('click', () => {
@@ -870,9 +1001,25 @@
         });
 
         const audioBtn = document.getElementById('audio-toggle-btn');
-        if (audioBtn) {
+        if (audioBtn && !audioBtn.dataset.bound) {
+            audioBtn.dataset.bound = 'true';
             audioBtn.addEventListener('click', () => {
                 window.debbyOS_setAudio(!audioEnabled);
+            });
+        }
+    }
+
+    /* ---------- INIT ---------- */
+    function init() {
+        showBootSplash(false);
+        initGlobalCDPlayer();
+        initSeamlessNavigation();
+        rebindPageBehaviors();
+
+        const themeSwitchEl = document.querySelector('.theme-switch');
+        if (themeSwitchEl) {
+            themeSwitchEl.addEventListener('click', () => {
+                window.debbyOS_cycleTheme();
             });
         }
     }
